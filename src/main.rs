@@ -1,6 +1,5 @@
 #![no_std]
 
-mod input;
 mod numworks_display;
 
 mod nw_main;
