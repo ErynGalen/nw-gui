@@ -8,3 +8,4 @@ edition = "2021"
 [dependencies]
 embedded-graphics = "0.7.1"
 embedded-graphics-simulator = "0.4.1"
+heapless = "0.7.16"
