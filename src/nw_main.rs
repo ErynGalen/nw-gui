@@ -1,4 +1,4 @@
-use embedded_graphics::prelude::RgbColor;
+use embedded_graphics::{prelude::*, primitives::Rectangle};
 
 use crate::{
     gui::{Gui, TextWidget, Widget},
@@ -9,10 +9,16 @@ pub fn nw_main() {
     let mut display = NwDisplay::get().unwrap();
 
     let mut gui = Gui::new();
-    gui.add_widget(Widget::Text(TextWidget::new(153, 31, Color::RED, Color::YELLOW, "hello!")))
-        .unwrap();
-    gui.add_widget(Widget::Text(TextWidget::new(155, 100, Color::YELLOW, Color::GREEN, "how are you?")))
-        .unwrap();
+    gui.add_widget(Widget::Text(
+        TextWidget::new(
+            Rectangle::new(Point::new(34, 35), Size::new(200, 20)),
+            Color::BLACK,
+            Color::CSS_LIGHT_GRAY,
+            "Numworks: Centered text",
+        )
+        .unwrap(),
+    ))
+    .unwrap();
     gui.render(display.target());
 
     loop {
