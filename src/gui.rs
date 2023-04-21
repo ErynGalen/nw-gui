@@ -1,20 +1,22 @@
-use heapless::Vec;
+use heapless::{String, Vec};
 
 use embedded_graphics::{
+    mono_font::{ascii::FONT_5X7, MonoTextStyle},
     prelude::*,
     primitives::{PrimitiveStyle, Rectangle},
+    text::Text,
 };
 
 use crate::numworks_display::{Color, DeviceDislay};
 
 #[derive(Debug)]
 pub enum Widget {
-    Square(SquareWidget),
+    Text(TextWidget),
 }
 impl Widget {
     pub fn render(&self, target: &mut DeviceDislay) {
         match self {
-            Self::Square(w) => w.render(target),
+            Self::Text(w) => w.render(target),
         }
     }
 }
@@ -46,19 +48,39 @@ impl Gui {
 }
 
 #[derive(Debug)]
-pub struct SquareWidget {
+pub struct TextWidget {
     x: i32,
     y: i32,
     color: Color,
-    //text: String<16>,
+    bg_color: Color,
+    text: String<16>,
 }
-impl SquareWidget {
+impl TextWidget {
     pub fn render(&self, target: &mut DeviceDislay) {
-        let rect = Rectangle::new(Point::new(self.x, self.y), Size::new(20, 20));
-        let style = PrimitiveStyle::with_stroke(self.color, 2);
-        rect.into_styled(style).draw(target).unwrap();
+        let text_style = MonoTextStyle::new(&FONT_5X7, self.color);
+        let text = Text::new(&self.text, Point::new(self.x, self.y), text_style);
+
+        let bounding_box = text.bounding_box();
+        let bounding_box = Rectangle::new(
+            Point::new(bounding_box.top_left.x - 3, bounding_box.top_left.y - 3),
+            Size::new(
+                bounding_box.size.width + 6,
+                bounding_box.size.height + 6,
+            ),
+        );
+
+        let style = PrimitiveStyle::with_stroke(self.bg_color, 2);
+        bounding_box.into_styled(style).draw(target).unwrap();
+
+        text.draw(target).unwrap();
     }
-    pub fn new(x: i32, y: i32, color: Color) -> Self {
-        Self { x, y, color }
+    pub fn new(x: i32, y: i32, color: Color, bg_color: Color, text: &str) -> Self {
+        Self {
+            x,
+            y,
+            color,
+            bg_color,
+            text: String::from(text),
+        }
     }
 }
