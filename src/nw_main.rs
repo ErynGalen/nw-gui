@@ -1,12 +1,12 @@
 use embedded_graphics::{prelude::*, primitives::Rectangle};
 
 use crate::{
+    calculator::{Calculator, Color, Event},
     gui::{Gui, TextWidget, Widget},
-    numworks_display::{Color, NwDisplay},
 };
 
 pub fn nw_main() {
-    let mut display = NwDisplay::get().unwrap();
+    let mut calc = Calculator::new().unwrap();
 
     let mut gui = Gui::new();
     gui.add_widget(Widget::Text(
@@ -19,9 +19,16 @@ pub fn nw_main() {
         .unwrap(),
     ))
     .unwrap();
-    gui.render(display.target());
+    gui.render(calc.get_draw_target());
 
-    loop {
-        display.render();
+    'running: loop {
+        calc.render();
+        for e in calc.events() {
+            //eprintln!("{:?}", e);
+            match e {
+                Event::HardQuit => break 'running,
+                _ => (),
+            }
+        }
     }
 }

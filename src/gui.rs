@@ -7,7 +7,7 @@ use embedded_graphics::{
     text::Text,
 };
 
-use crate::numworks_display::{Color, DeviceDislay};
+use crate::calculator::{Color, DeviceDislay};
 
 pub use embedded_graphics::mono_font::ascii::FONT_7X13 as NORMAL_FONT;
 
@@ -24,6 +24,7 @@ impl Widget {
 }
 
 pub const MAX_WIDGETS: usize = 32;
+
 #[derive(Debug)]
 pub struct Gui {
     widgets: Vec<Widget, MAX_WIDGETS>,
@@ -81,7 +82,7 @@ impl TextWidget {
         text.draw(target).unwrap();
     }
 
-    // can fail if the string is longer than the widget can hold
+    /// can fail if the string is longer than the widget can hold
     pub fn new(bounding_box: Rectangle, color: Color, bg_color: Color, text: &str) -> Option<Self> {
         let s = Self {
             bounding_box,

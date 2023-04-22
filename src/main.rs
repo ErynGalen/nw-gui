@@ -1,6 +1,6 @@
 #![no_std]
 
-mod numworks_display;
+mod calculator;
 
 mod gui;
 
