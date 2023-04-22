@@ -1,4 +1,4 @@
-use heapless::{String, Vec};
+use heapless::{String};
 
 use embedded_graphics::{
     mono_font::MonoTextStyle,
@@ -19,33 +19,6 @@ impl Widget {
     pub fn render(&self, target: &mut DeviceDislay) {
         match self {
             Self::Text(w) => w.render(target),
-        }
-    }
-}
-
-pub const MAX_WIDGETS: usize = 32;
-
-#[derive(Debug)]
-pub struct Gui {
-    widgets: Vec<Widget, MAX_WIDGETS>,
-}
-
-impl Gui {
-    pub fn new() -> Self {
-        Self {
-            widgets: Vec::new(),
-        }
-    }
-    pub fn add_widget(&mut self, w: Widget) -> Result<(), Widget> {
-        if self.widgets.is_full() {
-            return Err(w);
-        } else {
-            return self.widgets.push(w);
-        }
-    }
-    pub fn render(&self, target: &mut DeviceDislay) {
-        for w in &self.widgets {
-            w.render(target);
         }
     }
 }
@@ -97,5 +70,40 @@ impl TextWidget {
             text: String::from(text),
             ..s
         })
+    }
+}
+
+
+pub struct Splitter {
+    pub bounding_box: Rectangle,
+    pub vertical: bool,
+    pub ratio: f32,
+}
+
+impl Splitter {
+    pub fn bounding_box_a(&self) -> Rectangle {
+        let mut size = self.bounding_box.size;
+        if self.vertical {
+            let height = self.ratio * size.height as f32;
+            size = Size::new(size.width, height as u32);
+        } else {
+            let width = self.ratio * size.width as f32;
+            size = Size::new(width as u32, size.height);
+        }
+        Rectangle::new(self.bounding_box.top_left, size)
+    }
+    pub fn bounding_box_b(&self) -> Rectangle {
+        let mut size = self.bounding_box.size;
+        let mut top_left = self.bounding_box.top_left;
+        if self.vertical {
+            let removed_height = self.ratio * size.height as f32;
+            size = Size::new(size.width, size.height - removed_height as u32);
+            top_left = Point::new(top_left.x, top_left.y + removed_height as i32);
+        } else {
+            let removed_width = self.ratio * size.width as f32;
+            size = Size::new(size.width - removed_width as u32, size.height);
+            top_left = Point::new(top_left.x + removed_width as i32, top_left.y);
+        }
+        Rectangle::new(top_left, size)
     }
 }
