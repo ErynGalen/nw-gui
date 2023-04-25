@@ -25,7 +25,6 @@ fn main() {
     let t1 = TextWidget::new(
         left_vertical_splitter.bounding_box_a(),
         Color::BLACK,
-        Color::CSS_LIGHT_GRAY,
         "Numworks: Centered text",
     )
     .unwrap();
@@ -33,7 +32,6 @@ fn main() {
     let t2 = TextWidget::new(
         horizontal_splitter.bounding_box_b(),
         Color::RED,
-        Color::WHITE,
         "I'm red text!",
     )
     .unwrap();
@@ -41,7 +39,6 @@ fn main() {
     let t3 = TextWidget::new(
         left_vertical_splitter.bounding_box_b(),
         Color::YELLOW,
-        Color::CSS_SEA_GREEN,
         "Big text box",
     )
     .unwrap();

@@ -1,9 +1,9 @@
-use heapless::{String};
+use heapless::String;
 
 use embedded_graphics::{
     mono_font::MonoTextStyle,
     prelude::*,
-    primitives::{PrimitiveStyle, Rectangle},
+    primitives::{PrimitiveStyleBuilder, Rectangle},
     text::Text,
 };
 
@@ -14,11 +14,13 @@ pub use embedded_graphics::mono_font::ascii::FONT_7X13 as NORMAL_FONT;
 #[derive(Debug)]
 pub enum Widget {
     Text(TextWidget),
+    Rect(RectWidget),
 }
 impl Widget {
     pub fn render(&self, target: &mut DeviceDislay) {
         match self {
             Self::Text(w) => w.render(target),
+            Self::Rect(w) => w.render(target),
         }
     }
 }
@@ -27,7 +29,6 @@ impl Widget {
 pub struct TextWidget {
     pub bounding_box: Rectangle,
     pub color: Color,
-    pub bg_color: Color,
     pub text: String<32>,
 }
 impl TextWidget {
@@ -41,26 +42,18 @@ impl TextWidget {
                 + (self.bounding_box.size.width as i32 - text_size.width as i32) / 2,
             self.bounding_box.top_left.y
                 + (self.bounding_box.size.height as i32) / 2
-                + (text_size.height as i32) / 6, // text vertical anchor point is 2/3 of a character height
+                + (text_size.height as i32) / 6, // text vertical anchor point is at 2/3 of a character height
         );
-
-        let style = PrimitiveStyle::with_fill(self.bg_color);
-        // Rectangle::new(text_position, text_size)
-        //     .into_styled(style)
-        //     .draw(target)
-        //     .unwrap();
-        self.bounding_box.into_styled(style).draw(target).unwrap();
 
         let text = Text::new(&self.text, text_position, text_style);
         text.draw(target).unwrap();
     }
 
     /// can fail if the string is longer than the widget can hold
-    pub fn new(bounding_box: Rectangle, color: Color, bg_color: Color, text: &str) -> Option<Self> {
+    pub fn new(bounding_box: Rectangle, color: Color, text: &str) -> Option<Self> {
         let s = Self {
             bounding_box,
             color,
-            bg_color,
             text: String::new(),
         };
         if text.len() > s.text.capacity() {
@@ -73,6 +66,25 @@ impl TextWidget {
     }
 }
 
+#[derive(Debug)]
+pub struct RectWidget {
+    pub bounging_box: Rectangle,
+    pub fill_color: Color,
+    pub border_color: Color,
+    /// top, right, bottom, left
+    pub border_width: u32,
+}
+
+impl RectWidget {
+    pub fn render(&self, target: &mut DeviceDislay) {
+        let style = PrimitiveStyleBuilder::new()
+            .fill_color(self.fill_color)
+            .stroke_color(self.border_color)
+            .stroke_width(self.border_width)
+            .build();
+        self.bounging_box.into_styled(style).draw(target).unwrap();
+    }
+}
 
 pub struct Splitter {
     pub bounding_box: Rectangle,
