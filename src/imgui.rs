@@ -39,7 +39,7 @@ impl Imgui {
         }
     }
 
-    /// Returns the event back if it can't be added
+    /// Returns the action back if it can't be added
     pub fn add_action(&mut self, action: Action) -> Result<(), Action> {
         self.actions.enqueue(action)
     }
@@ -50,25 +50,30 @@ impl Imgui {
         let text = Text::new(label, Point::new(0, 0), character_style);
 
         let text_size = text.bounding_box().size;
-        let external_size = Size::new(text_size.width + 4, text_size.height + 4);
+        let external_size = Size::new(
+            text_size.width + Button::MARGIN * 2 + Button::PADDING * 2,
+            text_size.height + Button::MARGIN * 2 + Button::PADDING * 2,
+        );
 
-        let mut text_bounding_box = Rectangle::new(
+        let mut internal_bounding_box = Rectangle::new(
             Point::new(
                 self.available_bounding_box.top_left.x
-                    + (self.available_bounding_box.size.width as i32 - external_size.width as i32) / 2,
+                    + (self.available_bounding_box.size.width as i32 - external_size.width as i32)
+                        / 2,
                 self.available_bounding_box.top_left.y,
             ),
-            text_size,
+            Size::new(text_size.width + Button::PADDING * 2, text_size.height + Button::PADDING * 2),
         );
         match align {
             VerticalAlignment::Top => (),
             VerticalAlignment::Center => {
-                text_bounding_box.top_left.y = self.available_bounding_box.top_left.y
-                    + (self.available_bounding_box.size.height as i32 - external_size.height as i32)
+                internal_bounding_box.top_left.y = self.available_bounding_box.top_left.y
+                    + (self.available_bounding_box.size.height as i32
+                        - external_size.height as i32)
                         / 2;
             }
             VerticalAlignment::Bottom => {
-                text_bounding_box.top_left.y = self.available_bounding_box.top_left.y
+                internal_bounding_box.top_left.y = self.available_bounding_box.top_left.y
                     + self.available_bounding_box.size.height as i32
                     - external_size.height as i32;
             }
@@ -80,12 +85,12 @@ impl Imgui {
             }
             VerticalAlignment::Center => todo!(),
         }
-        text_bounding_box.top_left.y += 2;
+        internal_bounding_box.top_left.y += Button::MARGIN as i32;
 
         self.widgets
             .push(Widget::Button(Button {
                 focused,
-                bounding_box: text_bounding_box,
+                bounding_box: internal_bounding_box,
                 text: String::from(label),
             }))
             .unwrap();
@@ -151,6 +156,9 @@ struct Button {
 }
 
 impl Button {
+    const MARGIN: u32 = 2;
+    const PADDING: u32 = 2;
+
     fn render(&self, target: &mut DeviceDisplay) {
         let mut bg_style_builder = PrimitiveStyleBuilder::new()
             .stroke_width(1)
@@ -166,12 +174,15 @@ impl Button {
             .into_styled(bg_style)
             .draw(target)
             .unwrap();
-
+        let text_position = Point::new(
+            self.bounding_box.top_left.x + Self::PADDING as i32,
+            self.bounding_box.top_left.y + Self::PADDING as i32,
+        );
         let text_style = TextStyleBuilder::new().baseline(Baseline::Top).build();
         let character_style = MonoTextStyle::new(&NORMAL_FONT, Color::CSS_DARK_SLATE_GRAY); // TODO: this is duplicated from Imgui::button
         let text = Text::with_text_style(
             &self.text,
-            self.bounding_box.top_left,
+            text_position,
             character_style,
             text_style,
         );
