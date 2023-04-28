@@ -1,5 +1,6 @@
+use nw_gui::app::App;
 use nw_gui::calculator::{Calculator, DeviceDisplay, Event, Keycode};
-use nw_gui::imgui::{Action, Imgui, VerticalAlignment};
+use nw_gui::imgui::{Imgui, VerticalAlignment};
 
 use embedded_graphics::{prelude::*, primitives::Rectangle};
 use heapless::Vec;
@@ -25,7 +26,6 @@ struct ThisApp {
     running: bool,
     current_focus: u32,
 }
-
 impl ThisApp {
     fn new() -> Self {
         let mut app = Self {
@@ -38,6 +38,8 @@ impl ThisApp {
         app.ui.button("bottom -1", VerticalAlignment::Bottom, false);
         app
     }
+}
+impl App for ThisApp {
     fn on_event(&mut self, e: Event) {
         match e {
             Event::KeyDown(k) => match k {
@@ -51,6 +53,7 @@ impl ThisApp {
                         self.current_focus += 1
                     }
                 }
+                Keycode::Q => self.running = false,
                 _ => (),
             },
             _ => (),
@@ -62,7 +65,8 @@ impl ThisApp {
         }
         self.ui.button("line 1", VerticalAlignment::Top, focus[0]);
         self.ui.button("line 2", VerticalAlignment::Top, focus[1]);
-        self.ui.button("bottom -1", VerticalAlignment::Bottom, focus[2]);
+        self.ui
+            .button("bottom -1", VerticalAlignment::Bottom, focus[2]);
     }
     fn render(&self, target: &mut DeviceDisplay) {
         self.ui.render(target);

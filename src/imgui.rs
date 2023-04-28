@@ -1,9 +1,9 @@
-use crate::calculator::{Color, DeviceDisplay, Event};
+use crate::calculator::{Color, DeviceDisplay};
 
 use embedded_graphics::{
     mono_font::MonoTextStyle,
     prelude::*,
-    primitives::{PrimitiveStyleBuilder, Rectangle, StrokeAlignment},
+    primitives::{PrimitiveStyleBuilder, Rectangle},
     text::{Baseline, Text, TextStyleBuilder},
 };
 
