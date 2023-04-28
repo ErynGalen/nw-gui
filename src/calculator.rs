@@ -6,13 +6,13 @@ use embedded_graphics_simulator::{OutputSettings, SimulatorDisplay, SimulatorEve
 
 // TODO: add cfg flags to support different Display drivers, event fetcher, ...
 
-pub type DeviceDislay = SimulatorDisplay<Rgb888>;
+pub type DeviceDisplay = SimulatorDisplay<Rgb888>;
 pub type Color = Rgb888;
 
 pub use embedded_graphics_simulator::sdl2::Keycode;
 
 pub struct Calculator {
-    display: DeviceDislay,
+    display: DeviceDisplay,
     window: Window,
 }
 
@@ -20,7 +20,7 @@ impl Calculator {
     /// possibly fails if the calculator has already been requested
     pub fn new() -> Option<Self> {
         Some(Self {
-            display: DeviceDislay::new(Size::new(320, 240)),
+            display: DeviceDisplay::new(Size::new(320, 240)),
             window: Window::new("Numworks", &OutputSettings::default()),
         })
     }
@@ -30,7 +30,7 @@ impl Calculator {
         //self.window.show_static(&mut self.display);
     }
 
-    pub fn get_draw_target(&mut self) -> &mut DeviceDislay {
+    pub fn get_draw_target(&mut self) -> &mut DeviceDisplay {
         &mut self.display
     }
 

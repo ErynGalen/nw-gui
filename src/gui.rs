@@ -7,7 +7,7 @@ use embedded_graphics::{
     text::Text,
 };
 
-use crate::calculator::{Color, DeviceDislay};
+use crate::calculator::{Color, DeviceDisplay};
 
 pub use embedded_graphics::mono_font::ascii::FONT_7X13 as NORMAL_FONT;
 
@@ -17,7 +17,7 @@ pub enum Widget {
     Rect(RectWidget),
 }
 impl Widget {
-    pub fn render(&self, target: &mut DeviceDislay) {
+    pub fn render(&self, target: &mut DeviceDisplay) {
         match self {
             Self::Text(w) => w.render(target),
             Self::Rect(w) => w.render(target),
@@ -32,7 +32,7 @@ pub struct TextWidget {
     pub text: String<32>,
 }
 impl TextWidget {
-    pub fn render(&self, target: &mut DeviceDislay) {
+    pub fn render(&self, target: &mut DeviceDisplay) {
         let text_style = MonoTextStyle::new(&NORMAL_FONT, self.color);
         let text = Text::new(&self.text, Point::new(0, 0), text_style);
 
@@ -76,7 +76,7 @@ pub struct RectWidget {
 }
 
 impl RectWidget {
-    pub fn render(&self, target: &mut DeviceDislay) {
+    pub fn render(&self, target: &mut DeviceDisplay) {
         let style = PrimitiveStyleBuilder::new()
             .fill_color(self.fill_color)
             .stroke_color(self.border_color)

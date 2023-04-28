@@ -2,3 +2,4 @@
 
 pub mod calculator;
 pub mod gui;
+pub mod imgui;
