@@ -1,4 +1,4 @@
-use crate::calculator::{Color, DeviceDisplay};
+use crate::calculator::{Color, DeviceDisplay, Event, Keycode};
 
 use embedded_graphics::{
     mono_font::MonoTextStyle,
@@ -16,16 +16,18 @@ pub struct Imgui {
     bounding_box: Rectangle,
     actions: Queue<Action, 8>,
     available_bounding_box: Rectangle,
-    widgets: Vec<Widget, 32>,
+    widgets: Vec<(Widget, FocusGrid), 32>,
+    focused: usize,
 }
 
 impl Imgui {
     pub fn new(bounding_box: Rectangle) -> Self {
         Self {
-            bounding_box: bounding_box,
+            bounding_box,
             actions: Queue::new(),
             available_bounding_box: bounding_box,
             widgets: Vec::new(),
+            focused: 0,
         }
     }
     pub fn new_frame(&mut self) {
@@ -34,9 +36,62 @@ impl Imgui {
     }
 
     pub fn render(&self, target: &mut DeviceDisplay) {
+        let mut index = 0;
         for w in &self.widgets {
-            w.render(target);
+            let is_focused = if index == self.focused { true } else { false };
+            w.0.render(target, is_focused);
+            index += 1;
         }
+    }
+
+    pub fn on_event(&mut self, e: Event) {
+        let mut next_event = Some(e);
+        for w in &mut self.widgets {
+            match next_event {
+                None => (),
+                Some(event) => next_event = w.0.on_event(event),
+            }
+        }
+        match next_event {
+            None => (),
+            Some(event) => match event {
+                Event::KeyDown(k) => match k {
+                    Keycode::Right => {
+                        if let Some(to_focus) = self.widgets.get(self.focused).unwrap().1.right {
+                            self.focused = to_focus;
+                        }
+                    }
+                    Keycode::Left => {
+                        if let Some(to_focus) = self.widgets.get(self.focused).unwrap().1.left {
+                            self.focused = to_focus;
+                        }
+                    }
+                    Keycode::Up => {
+                        if let Some(to_focus) = self.widgets.get(self.focused).unwrap().1.up {
+                            self.focused = to_focus;
+                        }
+                    }
+                    Keycode::Down => {
+                        if let Some(to_focus) = self.widgets.get(self.focused).unwrap().1.down {
+                            self.focused = to_focus;
+                        }
+                    }
+                    _ => (),
+                },
+                _ => (),
+            },
+        }
+    }
+
+    /// links two widget's focus
+    pub fn focus_up_down(&mut self, up: usize, down: usize) {
+        self.widgets.get_mut(up).unwrap().1.down = Some(down);
+        self.widgets.get_mut(down).unwrap().1.up = Some(up);
+    }
+    /// links two widget's focus
+    pub fn focus_left_right(&mut self, left: usize, right: usize) {
+        self.widgets.get_mut(left).unwrap().1.right = Some(right);
+        self.widgets.get_mut(right).unwrap().1.left = Some(left);
     }
 
     /// Returns the action back if it can't be added
@@ -45,7 +100,7 @@ impl Imgui {
     }
 
     /// Add a button, always centered horizontally
-    pub fn button(&mut self, label: &str, align: VerticalAlignment, focused: bool) {
+    pub fn button(&mut self, label: &str, align: VerticalAlignment) -> usize {
         let character_style = MonoTextStyle::new(&NORMAL_FONT, Color::WHITE);
         let text = Text::new(label, Point::new(0, 0), character_style);
 
@@ -62,7 +117,10 @@ impl Imgui {
                         / 2,
                 self.available_bounding_box.top_left.y,
             ),
-            Size::new(text_size.width + Button::PADDING * 2, text_size.height + Button::PADDING * 2),
+            Size::new(
+                text_size.width + Button::PADDING * 2,
+                text_size.height + Button::PADDING * 2,
+            ),
         );
         match align {
             VerticalAlignment::Top => (),
@@ -88,12 +146,15 @@ impl Imgui {
         internal_bounding_box.top_left.y += Button::MARGIN as i32;
 
         self.widgets
-            .push(Widget::Button(Button {
-                focused,
-                bounding_box: internal_bounding_box,
-                text: String::from(label),
-            }))
+            .push((
+                Widget::Button(Button {
+                    bounding_box: internal_bounding_box,
+                    text: String::from(label),
+                }),
+                FocusGrid::default(),
+            ))
             .unwrap();
+        return self.widgets.len() - 1;
     }
 
     /// remove height from available bounding_box, at top or bottom only
@@ -134,23 +195,49 @@ pub enum Action {
     Ok,
 }
 
-// Private structs
 #[derive(Debug)]
 enum Widget {
     Button(Button),
 }
 
 impl Widget {
-    pub fn render(&self, target: &mut DeviceDisplay) {
+    pub fn render(&self, target: &mut DeviceDisplay, is_focused: bool) {
         match self {
-            Widget::Button(w) => w.render(target),
+            Widget::Button(w) => w.render(target, is_focused),
+        }
+    }
+    /// returns the event back if it hasn't been used
+    pub fn on_event(&mut self, e: Event) -> Option<Event> {
+        match self {
+            Widget::Button(_) => Some(e),
         }
     }
 }
 
+// Private structs
+
+#[derive(Debug)]
+struct FocusGrid {
+    right: Option<usize>,
+    left: Option<usize>,
+    down: Option<usize>,
+    up: Option<usize>,
+}
+impl Default for FocusGrid {
+    fn default() -> Self {
+        Self {
+            right: None,
+            left: None,
+            down: None,
+            up: None,
+        }
+    }
+}
+
+// Private widget structs
+
 #[derive(Debug)]
 struct Button {
-    focused: bool,
     bounding_box: Rectangle,
     text: String<16>,
 }
@@ -159,11 +246,11 @@ impl Button {
     const MARGIN: u32 = 2;
     const PADDING: u32 = 2;
 
-    fn render(&self, target: &mut DeviceDisplay) {
+    fn render(&self, target: &mut DeviceDisplay, is_focused: bool) {
         let mut bg_style_builder = PrimitiveStyleBuilder::new()
             .stroke_width(1)
             .fill_color(Color::CSS_DARK_GRAY);
-        if self.focused {
+        if is_focused {
             bg_style_builder = bg_style_builder.stroke_color(Color::CSS_BLUE_VIOLET);
         } else {
             bg_style_builder = bg_style_builder.stroke_color(Color::CSS_LIGHT_GRAY);
@@ -180,12 +267,7 @@ impl Button {
         );
         let text_style = TextStyleBuilder::new().baseline(Baseline::Top).build();
         let character_style = MonoTextStyle::new(&NORMAL_FONT, Color::CSS_DARK_SLATE_GRAY); // TODO: this is duplicated from Imgui::button
-        let text = Text::with_text_style(
-            &self.text,
-            text_position,
-            character_style,
-            text_style,
-        );
+        let text = Text::with_text_style(&self.text, text_position, character_style, text_style);
         text.draw(target).unwrap();
     }
 }

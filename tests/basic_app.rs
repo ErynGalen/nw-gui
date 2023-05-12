@@ -1,9 +1,8 @@
 use nw_gui::app::App;
-use nw_gui::calculator::{Calculator, DeviceDisplay, Event, Keycode};
+use nw_gui::calculator::{Calculator, DeviceDisplay, Event};
 use nw_gui::imgui::{Imgui, VerticalAlignment};
 
 use embedded_graphics::{prelude::*, primitives::Rectangle};
-use heapless::Vec;
 
 #[test]
 fn os_main() {
@@ -23,50 +22,31 @@ fn os_main() {
 
 struct ThisApp {
     ui: Imgui,
-    running: bool,
-    current_focus: u32,
+    //running: bool,
 }
 impl ThisApp {
     fn new() -> Self {
         let mut app = Self {
             ui: Imgui::new(Rectangle::new(Point::new(0, 0), Size::new(320, 240))),
-            running: true,
-            current_focus: 0,
+            //running: true,
         };
-        app.ui.button("line 1", VerticalAlignment::Top, true);
-        app.ui.button("line 2", VerticalAlignment::Top, false);
-        app.ui.button("bottom -1", VerticalAlignment::Bottom, false);
+        let b1 = app.ui.button("line 1", VerticalAlignment::Top);
+        let b2 = app.ui.button("line 2", VerticalAlignment::Top);
+        let b3 = app.ui.button("bottom -1", VerticalAlignment::Bottom);
+        app.ui.focus_up_down(b1, b2);
+        app.ui.focus_up_down(b2, b3);
         app
     }
 }
 impl App for ThisApp {
     fn on_event(&mut self, e: Event) {
-        match e {
-            Event::KeyDown(k) => match k {
-                Keycode::Up => {
-                    if self.current_focus > 0 {
-                        self.current_focus -= 1
-                    }
-                }
-                Keycode::Down => {
-                    if self.current_focus < 7 {
-                        self.current_focus += 1
-                    }
-                }
-                Keycode::Q => self.running = false,
-                _ => (),
-            },
-            _ => (),
-        }
+        self.ui.on_event(e);
         self.ui.new_frame();
-        let mut focus: Vec<bool, 8> = Vec::from_slice(&[false; 8]).unwrap();
-        if self.current_focus < 8 {
-            *focus.get_mut(self.current_focus as usize).unwrap() = true;
-        }
-        self.ui.button("line 1", VerticalAlignment::Top, focus[0]);
-        self.ui.button("line 2", VerticalAlignment::Top, focus[1]);
-        self.ui
-            .button("bottom -1", VerticalAlignment::Bottom, focus[2]);
+        let b1 = self.ui.button("line 1", VerticalAlignment::Top);
+        let b2 = self.ui.button("line 2", VerticalAlignment::Top);
+        let b3 = self.ui.button("bottom -1", VerticalAlignment::Bottom);
+        self.ui.focus_up_down(b1, b2);
+        self.ui.focus_up_down(b2, b3);
     }
     fn render(&self, target: &mut DeviceDisplay) {
         self.ui.render(target);
