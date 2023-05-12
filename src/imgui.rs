@@ -30,9 +30,12 @@ impl Imgui {
             focused: 0,
         }
     }
-    pub fn new_frame(&mut self) {
+    pub fn new_frame(&mut self, reset_focus: bool) {
         self.widgets = Vec::new();
         self.available_bounding_box = self.bounding_box;
+        if reset_focus {
+            self.focused = 0;
+        }
     }
 
     pub fn render(&self, target: &mut DeviceDisplay) {
