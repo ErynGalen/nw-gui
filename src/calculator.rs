@@ -66,7 +66,7 @@ impl Calculator {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub enum Event {
     KeyDown(Keycode),
     KeyUp(Keycode),

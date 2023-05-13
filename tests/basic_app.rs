@@ -22,12 +22,14 @@ fn os_main() {
 
 struct ThisApp {
     ui: Imgui,
+    slider_value: i32,
     //running: bool,
 }
 impl ThisApp {
     fn new() -> Self {
         let mut app = Self {
             ui: Imgui::new(Rectangle::new(Point::new(0, 0), Size::new(320, 240))),
+            slider_value: 0,
             //running: true,
         };
         ThisApp::create_layout(&mut app);
@@ -36,9 +38,10 @@ impl ThisApp {
 }
 impl App for ThisApp {
     fn on_event(&mut self, e: Event) {
-        self.ui.on_event(e);
+        self.ui.on_event(e).unwrap();
         self.ui.new_frame(false);
         self.create_layout();
+        self.ui.end_frame();
     }
     fn render(&self, target: &mut DeviceDisplay) {
         self.ui.render(target);
@@ -48,8 +51,10 @@ impl ThisApp {
     fn create_layout(&mut self) {
         let b1 = self.ui.button("line 1", VerticalAlignment::Top);
         let b2 = self.ui.button("line 2", VerticalAlignment::Top);
-        let b3 = self.ui.button("bottom -1", VerticalAlignment::Bottom);
         self.ui.focus_up_down(b1, b2);
-        self.ui.focus_up_down(b2, b3);
+        let s = self.ui.slider(&mut self.slider_value, -127, 128, VerticalAlignment::Top);
+        self.ui.focus_up_down(b2, s);
+        let b3 = self.ui.button(&self.slider_value.to_string(), VerticalAlignment::Bottom);
+        self.ui.focus_up_down(s, b3);
     }
 }
