@@ -124,7 +124,9 @@ impl Imgui {
     // create widgets
 
     /// Add a button, always centered horizontally
-    pub fn button(&mut self, label: &str, align: VerticalAlignment) -> usize {
+    ///
+    /// Also returns whether the buttons has just been pressed
+    pub fn button(&mut self, label: &str, align: VerticalAlignment) -> (usize, bool) {
         let character_style = MonoTextStyle::new(&NORMAL_FONT, Color::WHITE);
         let text = Text::new(label, Point::new(0, 0), character_style);
 
@@ -173,13 +175,19 @@ impl Imgui {
             .push((
                 Widget::Button(Button {
                     bounding_box: internal_bounding_box,
+                    pressed: false,
                     text: String::from(label),
                 }),
                 FocusGrid::default(),
             ))
             .unwrap();
         self.do_event_for_last();
-        return self.widgets.len() - 1;
+        let just_pressed = if let Widget::Button(b) = &self.widgets.last().unwrap().0 {
+            b.pressed
+        } else {
+            unreachable!()
+        };
+        return (self.widgets.len() - 1, just_pressed);
     }
     pub fn slider(
         &mut self,
@@ -211,7 +219,7 @@ impl Imgui {
         if let Widget::Slider(s) = &self.widgets.last().unwrap().0 {
             *value = s.value;
         } else {
-            panic!("Last widget should've been a slider");
+            unreachable!();
         }
         return self.widgets.len() - 1;
     }
@@ -300,7 +308,7 @@ impl Widget {
     /// returns the event back if it hasn't been used
     pub fn on_event(&mut self, e: Event) -> Option<Event> {
         match self {
-            Widget::Button(_) => Some(e),
+            Widget::Button(w) => w.on_event(e),
             Widget::Slider(w) => w.on_event(e),
         }
     }
@@ -331,6 +339,7 @@ impl Default for FocusGrid {
 #[derive(Debug)]
 struct Button {
     bounding_box: Rectangle,
+    pressed: bool,
     text: String<16>,
 }
 
@@ -339,8 +348,12 @@ impl Button {
 
     fn render(&self, target: &mut DeviceDisplay, is_focused: bool) {
         let mut bg_style_builder = PrimitiveStyleBuilder::new()
-            .stroke_width(1)
-            .fill_color(Color::CSS_DARK_GRAY);
+            .stroke_width(1);
+        if self.pressed {
+            bg_style_builder = bg_style_builder.fill_color(Color::CSS_LIGHT_SLATE_GRAY);
+        } else {
+            bg_style_builder = bg_style_builder.fill_color(Color::CSS_DARK_GRAY);
+        }
         if is_focused {
             bg_style_builder = bg_style_builder.stroke_color(Color::CSS_BLUE_VIOLET);
         } else {
@@ -360,6 +373,16 @@ impl Button {
         let character_style = MonoTextStyle::new(&NORMAL_FONT, Color::CSS_DARK_SLATE_GRAY); // TODO: this is duplicated from Imgui::button
         let text = Text::with_text_style(&self.text, text_position, character_style, text_style);
         text.draw(target).unwrap();
+    }
+    fn on_event(&mut self, e: Event) -> Option<Event> {
+        match e {
+            Event::KeyDown(k) => match k {
+                Keycode::Return | Keycode::Space => self.pressed = true,
+                _ => return Some(e),
+            },
+            _ => return Some(e),
+        }
+        None
     }
 }
 

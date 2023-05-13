@@ -32,7 +32,7 @@ impl ThisApp {
             slider_value: 0,
             //running: true,
         };
-        ThisApp::create_layout(&mut app);
+        app.create_layout();
         app
     }
 }
@@ -49,12 +49,15 @@ impl App for ThisApp {
 }
 impl ThisApp {
     fn create_layout(&mut self) {
-        let b1 = self.ui.button("line 1", VerticalAlignment::Top);
-        let b2 = self.ui.button("line 2", VerticalAlignment::Top);
+        let (b1, _) = self.ui.button("button 1", VerticalAlignment::Top);
+        let (b2, reset) = self.ui.button("reset", VerticalAlignment::Top);
         self.ui.focus_up_down(b1, b2);
         let s = self.ui.slider(&mut self.slider_value, -127, 128, VerticalAlignment::Top);
         self.ui.focus_up_down(b2, s);
-        let b3 = self.ui.button(&self.slider_value.to_string(), VerticalAlignment::Bottom);
+        let (b3, _) = self.ui.button(&self.slider_value.to_string(), VerticalAlignment::Bottom);
         self.ui.focus_up_down(s, b3);
+        if reset {
+            self.slider_value = 0;
+        }
     }
 }
