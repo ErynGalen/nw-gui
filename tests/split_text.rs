@@ -3,7 +3,7 @@ use embedded_graphics::{prelude::*, primitives::Rectangle};
 use heapless::Vec;
 
 use nw_gui::{
-    calculator::{Calculator, Color, Event, Keycode},
+    calculator::{Calculator, Color, Event, KeyCode},
     gui::{Splitter, TextWidget, Widget},
 };
 
@@ -61,10 +61,10 @@ fn main() {
             match e {
                 Event::HardQuit => break 'running,
                 Event::KeyDown(k) => match k {
-                    Keycode::Right => horizontal_ratio = horizontal_splitter.ratio + 0.1,
-                    Keycode::Left => horizontal_ratio = horizontal_splitter.ratio - 0.1,
-                    Keycode::Up => vertical_ratio = left_vertical_splitter.ratio - 0.1,
-                    Keycode::Down => vertical_ratio = left_vertical_splitter.ratio + 0.1,
+                    KeyCode::Right => horizontal_ratio = horizontal_splitter.ratio + 0.1,
+                    KeyCode::Left => horizontal_ratio = horizontal_splitter.ratio - 0.1,
+                    KeyCode::Up => vertical_ratio = left_vertical_splitter.ratio - 0.1,
+                    KeyCode::Down => vertical_ratio = left_vertical_splitter.ratio + 0.1,
                     _ => (),
                 },
                 _ => (),
