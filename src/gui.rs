@@ -1,28 +1,28 @@
+//! This module contains types and  traits used to create a GUI.
+
 use heapless::String;
 
 use embedded_graphics::{
     mono_font::MonoTextStyle,
     prelude::*,
-    primitives::{PrimitiveStyleBuilder, Rectangle},
+    primitives::Rectangle,
     text::Text,
 };
 
-use crate::calculator::{Color, DeviceDislay, Event, KeyCode};
+use crate::calculator::{Color, DeviceDislay, Event};
 
+pub mod storage;
 pub mod widgets;
 
+/// This font should be used to render text.
 pub use embedded_graphics::mono_font::ascii::FONT_7X13 as NORMAL_FONT;
 
-pub trait WidgetCollection {
-    type Item: Widget;
-
-    fn len(&self) -> usize;
-    fn get(&self, n: usize) -> Option<&Self::Item>;
-    fn get_mut(&mut self, n: usize) -> Option<&mut Self::Item>;
-}
-
+/// The GUI is made of objects implementing the `Widget` trait.
 pub trait Widget {
+    /// The `render()` method draws the widget onto the given target.
     fn render(&self, target: &mut DeviceDislay);
+    /// The `on_event()` method dispatches the given event to the widget,
+    /// which may pass the event to its children.
     fn on_event(&mut self, e: Event);
 }
 #[derive(Debug)]
@@ -49,7 +49,7 @@ impl TextWidget {
         text.draw(target).unwrap();
     }
 
-    /// can fail if the string is longer than the widget can hold
+    /// Can fail if the string is longer than the widget can hold.
     pub fn new(bounding_box: Rectangle, color: Color, text: &str) -> Option<Self> {
         let s = Self {
             bounding_box,
@@ -63,94 +63,5 @@ impl TextWidget {
             text: String::from(text),
             ..s
         })
-    }
-}
-
-#[derive(Debug)]
-pub struct RectWidget {
-    pub bounging_box: Rectangle,
-    pub fill_color: Color,
-    pub border_color: Color,
-    /// top, right, bottom, left
-    pub border_width: u32,
-}
-impl Widget for RectWidget {
-    fn on_event(&mut self, _e: Event) {}
-    fn render(&self, target: &mut DeviceDislay) {
-        let style = PrimitiveStyleBuilder::new()
-            .fill_color(self.fill_color)
-            .stroke_color(self.border_color)
-            .stroke_width(self.border_width)
-            .build();
-        self.bounging_box.into_styled(style).draw(target).unwrap();
-    }
-}
-
-#[derive(Debug, Clone, Copy)]
-pub struct Grid<const X: usize, const Y: usize, C: WidgetCollection> {
-    bounding_box: Rectangle,
-    grid: [[Option<usize>; Y]; X],
-    selected: (usize, usize),
-    children: C,
-}
-impl<const X: usize, const Y: usize, C: WidgetCollection> Grid<X, Y, C> {
-    pub fn new(bounding_box: Rectangle, children: C) -> Self {
-        Self {
-            bounding_box,
-            grid: [[None; Y]; X],
-            selected: (0, 0),
-            children,
-        }
-    }
-}
-impl<'a, const X: usize, const Y: usize, C: WidgetCollection> Widget for Grid<X, Y, C> {
-    fn render(&self, target: &mut DeviceDislay) {
-        for n in 0..self.children.len() {
-            self.children.get(n).unwrap().render(target);
-        }
-    }
-    fn on_event(&mut self, e: Event) {
-        match e {
-            Event::KeyDown(key) => {
-                let mut new_selected = self.selected;
-                match key {
-                    KeyCode::Left => {
-                        if new_selected.0 > 0 {
-                            new_selected.0 -= 1;
-                        }
-                    }
-                    KeyCode::Right => {
-                        if new_selected.0 < X {
-                            new_selected.0 += 1;
-                        }
-                    }
-                    KeyCode::Up => {
-                        if new_selected.1 > 0 {
-                            new_selected.1 -= 1;
-                        }
-                    }
-                    KeyCode::Down => {
-                        if new_selected.1 < Y {
-                            new_selected.1 += 1;
-                        }
-                    }
-                    _ => {
-                        let selected_child = self.grid[self.selected.0][self.selected.1].unwrap();
-                        if let Some(selected_child) = self.children.get_mut(selected_child) {
-                            selected_child.on_event(e);
-                        }
-                    }
-                }
-                if self.grid[new_selected.0][new_selected.1].is_some() {
-                    self.selected = new_selected;
-                }
-            }
-            _ => {
-                let selected_child = self.grid[self.selected.0][self.selected.1].unwrap();
-                if let Some(selected_child) = self.children.get_mut(selected_child) {
-                    selected_child.on_event(e);
-                }
-            }
-        }
     }
 }

@@ -1,3 +1,5 @@
+//! This module contains types and traits associated with the calculator as a whole.
+
 use core::iter::Iterator;
 
 use embedded_graphics::{pixelcolor::Rgb888, prelude::*};
@@ -8,16 +10,27 @@ use embedded_graphics_simulator::sdl2;
 
 // TODO: add cfg flags to support different Display drivers, event fetcher, ...
 
+/// This type represent the display of the calculator.
+/// Everything is drawn on it.
 pub type DeviceDislay = SimulatorDisplay<Rgb888>;
+/// This type represents the colors available on the calculator display.
+/// It should be the only type used for colors.
 pub type Color = Rgb888;
 
+/// This struct represents the calculator, as seen by an application.
+/// The OS may pass a `Calculator` object to the applications.
+/// 
+/// # Panics
+/// `Calculator::render()` must be called before `Calculator::events()`,
+/// otherwise `Calculator::events()` will panic.
 pub struct Calculator {
     display: DeviceDislay,
     window: Window,
 }
 
 impl Calculator {
-    /// possibly fails if the calculator has already been requested
+    /// Request the calculator.
+    /// May fail if the calculator has already been requested.
     pub fn new() -> Option<Self> {
         Some(Self {
             display: DeviceDislay::new(Size::new(320, 240)),
@@ -25,15 +38,19 @@ impl Calculator {
         })
     }
 
+    /// Render the buffer to the physical display.
     pub fn render(&mut self) {
         self.window.update(&mut self.display);
         //self.window.show_static(&mut self.display);
     }
 
+    /// Return a `DeviceDisplay` representing the display buffer,
+    /// on which applications should draw their UI.
     pub fn get_draw_target(&mut self) -> &mut DeviceDislay {
         &mut self.display
     }
 
+    /// Iterator on events recieved by the OS at a certain point.
     pub fn events(&mut self) -> impl Iterator<Item = Event> + '_ {
         self.window
             .events()
@@ -65,14 +82,19 @@ impl Calculator {
     }
 }
 
+/// This struct holds an event produced by the OS.
 #[derive(Debug)]
 pub enum Event {
+    /// A key has been pressed.
     KeyDown(KeyCode),
+    /// A key has been released.
     KeyUp(KeyCode),
-    /// quit whatsoever
+    /// Quit whatsoever, may be handled by the OS directly,
+    /// so applications may or may not recieve it.
     HardQuit,
 }
 
+/// Raw key codes representing each key on the physical keyboard.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(u32)]
 pub enum KeyCode {
