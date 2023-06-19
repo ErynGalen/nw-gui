@@ -21,9 +21,15 @@ use heapless::Vec;
 pub trait WidgetCollection {
     type Item: Widget;
 
+    /// Number of widgets in the collection.
     fn len(&self) -> usize;
+    /// Read-only access to the n-th widget in the collection.
     fn get(&self, n: usize) -> Option<&Self::Item>;
+    /// Mutable access to the n-th widget in the collection.
     fn get_mut(&mut self, n: usize) -> Option<&mut Self::Item>;
+    /// Add a widget to the collection.
+    /// Return the widget back if it can't be added.
+    fn add_widget(&mut self, widget: Self::Item) -> Result<(), Self::Item>;
 }
 
 /// Vec of a uniform type can be used as a WidgetCollection.
@@ -40,5 +46,9 @@ impl <T: Widget, const N: usize> WidgetCollection for Vec<T, N> {
     }
     fn get_mut(&mut self, n: usize) -> Option<&mut Self::Item> {
         (**self).get_mut(n)
+    }
+
+    fn add_widget(&mut self, widget: Self::Item) -> Result<(), Self::Item> {
+        self.push(widget)
     }
 }
