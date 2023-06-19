@@ -3,6 +3,5 @@ Attempt at making a UI for Rustworks (https://github.com/nw-rs/rustworks)
 
 The current goal is to create a GUI toolkit as well as an input event system.
 
-### Current state
-- The input event system uses directly the `Keycode` struct from SDL2
-- The widget system doesn't support event dispatching, which it should
+### Examples
+See [`simple_app.rs`](tests/simple_app.rs) for an example on how to use the toolkit.
