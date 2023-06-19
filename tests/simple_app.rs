@@ -3,7 +3,7 @@ use embedded_graphics::primitives::Rectangle;
 use nw_gui::{
     calculator::{Calculator, Color, Event, KeyCode},
     gui::{
-        widgets::{Grid, RectWidget},
+        widgets::{Grid, ColorRect},
         Widget,
     },
 };
@@ -15,7 +15,7 @@ fn main() {
     let mut calc = Calculator::new().unwrap();
     calc.render();
 
-    let children: Vec<RectWidget, 2> = Vec::new();
+    let children: Vec<ColorRect, 2> = Vec::new();
 
     let mut root: Grid<2, 1, _> = Grid::new(
         Rectangle::new(
@@ -29,7 +29,7 @@ fn main() {
     );
 
     root.add_child_at(
-        RectWidget {
+        ColorRect {
             bounging_box: Rectangle::default(),
             fill_color: Color::CSS_RED,
             border_color: Color::GREEN,
@@ -37,10 +37,11 @@ fn main() {
         },
         (0, 0),
         (1, 1),
+        4,
     )
     .unwrap();
     root.add_child_at(
-        RectWidget {
+        ColorRect {
             bounging_box: Rectangle::default(),
             fill_color: Color::CSS_RED,
             border_color: Color::GREEN,
@@ -48,6 +49,7 @@ fn main() {
         },
         (1, 0),
         (1, 1),
+        4,
     )
     .unwrap();
 

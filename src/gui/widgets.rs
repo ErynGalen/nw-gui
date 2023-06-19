@@ -7,14 +7,15 @@ use embedded_graphics::{
     primitives::{PrimitiveStyleBuilder, Rectangle},
 };
 
+/// A colored rectanble, with an outline of a different color.
 #[derive(Debug)]
-pub struct RectWidget {
+pub struct ColorRect {
     pub bounging_box: Rectangle,
     pub fill_color: Color,
     pub border_color: Color,
     pub border_width: u32,
 }
-impl Widget for RectWidget {
+impl Widget for ColorRect {
     fn on_event(&mut self, _e: Event) {}
     fn render(&self, target: &mut DeviceDislay, focused: bool) {
         let style = PrimitiveStyleBuilder::new()
@@ -33,6 +34,8 @@ impl Widget for RectWidget {
     }
 }
 
+/// A widget grid.
+/// The grid has `X` cells horizontally, and `Y` cells vertically.
 #[derive(Debug, Clone, Copy)]
 pub struct Grid<const X: usize, const Y: usize, C: WidgetCollection> {
     bounding_box: Rectangle,
@@ -41,7 +44,17 @@ pub struct Grid<const X: usize, const Y: usize, C: WidgetCollection> {
     children: C,
 }
 impl<const X: usize, const Y: usize, C: WidgetCollection> Grid<X, Y, C> {
+    /// Create a new grid with filling the specified bounding box.
+    ///
+    /// `children` is a the collection used to store the children of the grid.
+    /// It should be empty.
+    ///
+    /// # Panics
+    /// The function panics if `children` isn't empty, i.e. if `children.len() > 0`.
     pub fn new(bounding_box: Rectangle, children: C) -> Self {
+        if children.len() > 0 {
+            panic!("Can't create a grid from a non-empty collection.");
+        }
         Self {
             bounding_box,
             grid: [[None; Y]; X],
@@ -53,6 +66,7 @@ impl<const X: usize, const Y: usize, C: WidgetCollection> Grid<X, Y, C> {
     ///
     /// `position` is the top-left cell of the requested position in grid.
     /// `size` is the number of cells (horizontally, vertically) requested.
+    /// `padding` is the padding (in the CSS sense, both horizontally and vertically) in pixels.
     ///
     /// The child is returned back if it can't be added.
     pub fn add_child_at(
@@ -60,6 +74,7 @@ impl<const X: usize, const Y: usize, C: WidgetCollection> Grid<X, Y, C> {
         mut child: C::Item,
         position: (usize, usize),
         size: (usize, usize),
+        padding: u32,
     ) -> Result<(), C::Item> {
         let cell_size = (
             self.bounding_box.size.width / X as u32,
@@ -70,13 +85,19 @@ impl<const X: usize, const Y: usize, C: WidgetCollection> Grid<X, Y, C> {
             return Err(child);
         }
 
-        let bb = Rectangle::new(
+        let mut bb = Rectangle::new(
             Point::new(
                 position.0 as i32 * cell_size.0 as i32,
                 position.1 as i32 * cell_size.1 as i32,
             ) + self.bounding_box.top_left,
             Size::new(size.0 as u32 * cell_size.0, size.1 as u32 * cell_size.1),
         );
+        let horizontal_padding = padding.clamp(0, bb.size.width / 2);
+        let vertical_padding = padding.clamp(0, bb.size.height / 2);
+        bb.top_left.x += horizontal_padding as i32;
+        bb.top_left.y += vertical_padding as i32;
+        bb.size.width -= 2 * horizontal_padding;
+        bb.size.height -= 2 * horizontal_padding;
         child.set_bounding_box(bb);
 
         self.children.add_widget(child)?;
@@ -95,14 +116,22 @@ impl<const X: usize, const Y: usize, C: WidgetCollection> Grid<X, Y, C> {
 }
 impl<'a, const X: usize, const Y: usize, C: WidgetCollection> Widget for Grid<X, Y, C> {
     fn render(&self, target: &mut DeviceDislay, focused: bool) {
+        let mut selected_child: Option<usize> = None;
         for n in 0..self.children.len() {
             let child_focused = self.grid[self.selected.0][self.selected.1]
                 .and_then(|selected_child| Some(n == selected_child))
                 .unwrap_or(false);
+            if child_focused {
+                selected_child = Some(n);
+            } else {
+                self.children.get(n).unwrap().render(target, false);
+            }
+        }
+        if let Some(selected_child) = selected_child {
             self.children
-                .get(n)
+                .get(selected_child)
                 .unwrap()
-                .render(target, child_focused && focused);
+                .render(target, focused);
         }
     }
     fn on_event(&mut self, e: Event) {
