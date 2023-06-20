@@ -19,7 +19,7 @@ pub type Color = Rgb888;
 
 /// This struct represents the calculator, as seen by an application.
 /// The OS may pass a `Calculator` object to the applications.
-/// 
+///
 /// # Panics
 /// `Calculator::render()` must be called before `Calculator::events()`,
 /// otherwise `Calculator::events()` will panic.
@@ -64,20 +64,24 @@ impl Calculator {
                     keycode,
                     keymod: _,
                     repeat: _,
-                } => if let Some(key) = KeyCode::try_from_sdl2(keycode) {
-                    Some(Event::KeyDown(key))
-                } else {
-                    None
-                },
+                } => {
+                    if let Some(key) = KeyCode::try_from_sdl2(keycode) {
+                        Some(Event::KeyDown(key))
+                    } else {
+                        None
+                    }
+                }
                 SimulatorEvent::KeyUp {
                     keycode,
                     keymod: _,
                     repeat: _,
-                } => if let Some(key) = KeyCode::try_from_sdl2(keycode) {
-                    Some(Event::KeyUp(key))
-                } else {
-                    None
-                },
+                } => {
+                    if let Some(key) = KeyCode::try_from_sdl2(keycode) {
+                        Some(Event::KeyUp(key))
+                    } else {
+                        None
+                    }
+                }
             })
     }
 }

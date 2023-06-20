@@ -38,6 +38,10 @@ impl Widget for ColorRect {
 
 /// A widget grid.
 /// The grid has `X` cells horizontally, and `Y` cells vertically.
+///
+/// Its children are stored in a collection of type `C`.
+///
+/// The bounding box of the children is calculated when they're added.
 #[derive(Debug, Clone, Copy)]
 pub struct Grid<const X: usize, const Y: usize, C: WidgetCollection> {
     bounding_box: Rectangle,
@@ -46,7 +50,7 @@ pub struct Grid<const X: usize, const Y: usize, C: WidgetCollection> {
     children: C,
 }
 impl<const X: usize, const Y: usize, C: WidgetCollection> Grid<X, Y, C> {
-    /// Create a new grid with filling the specified bounding box.
+    /// Create a new grid filling the specified bounding box.
     ///
     /// `children` is a the collection used to store the children of the grid.
     /// It should be empty.
@@ -66,13 +70,13 @@ impl<const X: usize, const Y: usize, C: WidgetCollection> Grid<X, Y, C> {
     }
     /// Add a child widget to the grid.
     ///
-    /// `position` is the top-left cell of the requested position in grid.
-    /// `size` is the number of cells (horizontally, vertically) requested.
-    /// `padding` is the padding (in the CSS sense, both horizontally and vertically) in pixels.
+    /// * `position` is the top-left cell of the requested position in grid.
+    /// * `size` is the number of cells (horizontally, vertically) requested.
+    /// * `padding` is the padding (in the CSS sense, both horizontally and vertically) in pixels.
     ///
     /// If the child is successfully added, then its id is returned,
     /// otherwise the child is returned back.
-    /// 
+    ///
     pub fn add_child_at(
         &mut self,
         mut child: C::Item,

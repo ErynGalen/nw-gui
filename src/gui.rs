@@ -1,13 +1,10 @@
-//! This module contains types and  traits used to create a GUI.
+//! This module contains types and traits used to create a GUI.
 
 use heapless::String;
 
-use embedded_graphics::{
-    mono_font::MonoTextStyle,
-    prelude::*,
-    primitives::Rectangle,
-    text::Text,
-};
+use embedded_graphics::{mono_font::MonoTextStyle, prelude::*, primitives::Rectangle, text::Text};
+
+use either::Either;
 
 use crate::calculator::{Color, DeviceDislay, Event};
 
@@ -17,7 +14,7 @@ pub mod widgets;
 /// This font should be used to render text.
 pub use embedded_graphics::mono_font::ascii::FONT_7X13 as NORMAL_FONT;
 
-/// The GUI is made of objects implementing the `Widget` trait.
+/// The GUI is made of objects implementing [`Widget`].
 pub trait Widget {
     /// The `render()` method draws the widget onto the given target.
     fn render(&self, target: &mut DeviceDislay, focused: bool);
@@ -68,5 +65,18 @@ impl TextWidget {
             text: String::from(text),
             ..s
         })
+    }
+}
+
+/// A Vec of [`Either`](either::Either) can be used as a widget collection to store multiple widget types.
+impl<L: Widget, R: Widget> Widget for Either<L, R> {
+    fn on_event(&mut self, e: crate::calculator::Event) -> Option<crate::calculator::Event> {
+        either::for_both!(self, w => w.on_event(e))
+    }
+    fn render(&self, target: &mut crate::calculator::DeviceDislay, focused: bool) {
+        either::for_both!(self, w => w.render(target, focused))
+    }
+    fn set_bounding_box(&mut self, bounding_box: embedded_graphics::primitives::Rectangle) {
+        either::for_both!(self, w => w.set_bounding_box(bounding_box))
     }
 }
