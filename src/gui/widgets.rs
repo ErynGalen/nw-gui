@@ -10,10 +10,25 @@ use embedded_graphics::{
 /// A colored rectanble, with an outline of a different color.
 #[derive(Debug)]
 pub struct ColorRect {
-    pub bounging_box: Rectangle,
-    pub fill_color: Color,
-    pub border_color: Color,
-    pub border_width: u32,
+    bounding_box: Rectangle,
+    fill_color: Color,
+    border_color: Color,
+    border_width: u32,
+}
+impl ColorRect {
+    pub fn new(
+        fill_color: Color,
+        border_color: Color,
+        border_width: u32,
+        bounding_box: Rectangle,
+    ) -> Self {
+        Self {
+            fill_color,
+            border_color,
+            border_width,
+            bounding_box,
+        }
+    }
 }
 impl Widget for ColorRect {
     fn on_event(&mut self, e: Event) -> Option<Event> {
@@ -29,10 +44,10 @@ impl Widget for ColorRect {
             })
             .stroke_width(self.border_width)
             .build();
-        self.bounging_box.into_styled(style).draw(target).unwrap();
+        self.bounding_box.into_styled(style).draw(target).unwrap();
     }
     fn set_bounding_box(&mut self, bounding_box: Rectangle) {
-        self.bounging_box = bounding_box;
+        self.bounding_box = bounding_box;
     }
 }
 
@@ -77,6 +92,44 @@ impl<const X: usize, const Y: usize, C: WidgetCollection> Grid<X, Y, C> {
     /// If the child is successfully added, then its id is returned,
     /// otherwise the child is returned back.
     ///
+    /// # Example
+    /// ```
+    /// use embedded_graphics::{prelude::*, primitives::Rectangle};
+    /// use nw_gui::gui::widgets::{ColorRect, Grid};
+    /// use nw_gui::calculator::Color;
+    /// use heapless::Vec;
+    /// // This layout:
+    /// // +----+----+----+----+----+
+    /// // |    |    |    |  GREEN  |
+    /// // +----+----+----+----+----+
+    /// // |     BLUE     |    |    |
+    /// // +----+----+----+----+----+
+    /// // |    |     RED      |    |
+    /// // +----+----+----+----+----+
+    /// // can be contructed as follows:
+    /// let mut grid: Grid<5, 3, Vec<ColorRect, 3>> = Grid::new(
+    ///     Rectangle::new(Point::new(0, 0), Size::new(320, 240)),
+    ///     Vec::new(),
+    /// );
+    /// grid.add_child_at(
+    ///     ColorRect::new(Color::GREEN, Color::WHITE, 2, Rectangle::default()),
+    ///     (0, 0),
+    ///     (2, 1),
+    ///     4,
+    /// ).unwrap();
+    /// grid.add_child_at(
+    ///     ColorRect::new(Color::BLUE, Color::WHITE, 2, Rectangle::default()),
+    ///     (0, 1),
+    ///     (3, 1),
+    ///     4,
+    /// ).unwrap();
+    /// grid.add_child_at(
+    ///     ColorRect::new(Color::RED, Color::WHITE, 2, Rectangle::default()),
+    ///     (1, 2),
+    ///     (3, 1),
+    ///     4,
+    /// ).unwrap();
+    /// ```
     pub fn add_child_at(
         &mut self,
         mut child: C::Item,
@@ -152,12 +205,13 @@ impl<'a, const X: usize, const Y: usize, C: WidgetCollection> Widget for Grid<X,
         }
     }
     fn on_event(&mut self, e: Event) -> Option<Event> {
-        let e = self.grid[self.selected.0][self.selected.1].and_then(|selected| {
-            self.children
-                .get_mut(selected)
-                .and_then(|selected| selected.on_event(e))
-        });
-        if let Some(e) = e {
+        let mut remaining_event: Option<Event> = Some(e);
+        if let Some(selected_index) = self.grid[self.selected.0][self.selected.1] {
+            if let Some(selected_child) = self.children.get_mut(selected_index) {
+                remaining_event = selected_child.on_event(remaining_event.unwrap());
+            }
+        }
+        if let Some(e) = remaining_event {
             let mut focus_offset: (isize, isize) = (0, 0);
             match e {
                 Event::KeyDown(KeyCode::Left) => focus_offset.0 = -1,

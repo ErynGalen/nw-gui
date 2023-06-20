@@ -35,12 +35,12 @@ impl App for SimpleApp {
         };
         app.gui_root
             .add_child_at(
-                Either::Left(ColorRect {
-                    bounging_box: Rectangle::default(),
-                    fill_color: Color::CSS_RED,
-                    border_color: Color::GREEN,
-                    border_width: 2,
-                }),
+                Either::Left(ColorRect::new(
+                    Color::CSS_RED,
+                    Color::GREEN,
+                    2,
+                    Rectangle::default(),
+                )),
                 (0, 0),
                 (1, 1),
                 4,
@@ -60,12 +60,7 @@ impl App for SimpleApp {
         if let Some(Either::Right(right)) = app.gui_root.get_mut(right_id) {
             right
                 .add_child_at(
-                    ColorRect {
-                        border_color: Color::CYAN,
-                        border_width: 2,
-                        bounging_box: Rectangle::default(),
-                        fill_color: Color::CSS_PINK,
-                    },
+                    ColorRect::new(Color::CSS_PINK, Color::CYAN, 2, Rectangle::default()),
                     (0, 0),
                     (1, 1),
                     4,
@@ -73,12 +68,12 @@ impl App for SimpleApp {
                 .unwrap();
             right
                 .add_child_at(
-                    ColorRect {
-                        border_color: Color::CSS_DEEP_PINK,
-                        border_width: 2,
-                        bounging_box: Rectangle::default(),
-                        fill_color: Color::CSS_PALE_GOLDENROD,
-                    },
+                    ColorRect::new(
+                        Color::CSS_PALE_GOLDENROD,
+                        Color::CSS_DEEP_PINK,
+                        2,
+                        Rectangle::default(),
+                    ),
                     (0, 1),
                     (1, 1),
                     4,
