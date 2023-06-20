@@ -16,7 +16,9 @@ pub struct ColorRect {
     pub border_width: u32,
 }
 impl Widget for ColorRect {
-    fn on_event(&mut self, _e: Event) {}
+    fn on_event(&mut self, e: Event) -> Option<Event> {
+        Some(e)
+    }
     fn render(&self, target: &mut DeviceDislay, focused: bool) {
         let style = PrimitiveStyleBuilder::new()
             .fill_color(self.fill_color)
@@ -68,14 +70,16 @@ impl<const X: usize, const Y: usize, C: WidgetCollection> Grid<X, Y, C> {
     /// `size` is the number of cells (horizontally, vertically) requested.
     /// `padding` is the padding (in the CSS sense, both horizontally and vertically) in pixels.
     ///
-    /// The child is returned back if it can't be added.
+    /// If the child is successfully added, then its id is returned,
+    /// otherwise the child is returned back.
+    /// 
     pub fn add_child_at(
         &mut self,
         mut child: C::Item,
         position: (usize, usize),
         size: (usize, usize),
         padding: u32,
-    ) -> Result<(), C::Item> {
+    ) -> Result<usize, C::Item> {
         let cell_size = (
             self.bounding_box.size.width / X as u32,
             self.bounding_box.size.height / Y as u32,
@@ -111,7 +115,16 @@ impl<const X: usize, const Y: usize, C: WidgetCollection> Grid<X, Y, C> {
             }
         }
 
-        Ok(())
+        Ok(child_n)
+    }
+
+    /// Read-only acces to a child
+    pub fn get(&self, n: usize) -> Option<&C::Item> {
+        self.children.get(n)
+    }
+    /// Mutable acces to a child
+    pub fn get_mut(&mut self, n: usize) -> Option<&mut C::Item> {
+        self.children.get_mut(n)
     }
 }
 impl<'a, const X: usize, const Y: usize, C: WidgetCollection> Widget for Grid<X, Y, C> {
@@ -134,43 +147,48 @@ impl<'a, const X: usize, const Y: usize, C: WidgetCollection> Widget for Grid<X,
                 .render(target, focused);
         }
     }
-    fn on_event(&mut self, e: Event) {
-        let mut focus_offset: (isize, isize) = (0, 0);
-        match e {
-            Event::KeyDown(KeyCode::Left) => focus_offset.0 = -1,
-            Event::KeyDown(KeyCode::Right) => focus_offset.0 = 1,
-            Event::KeyDown(KeyCode::Up) => focus_offset.1 = -1,
-            Event::KeyDown(KeyCode::Down) => focus_offset.1 = 1,
-            _ => {
-                if let Some(selected_child) = self.grid[self.selected.0][self.selected.1] {
-                    if let Some(selected_child) = self.children.get_mut(selected_child) {
-                        selected_child.on_event(e);
+    fn on_event(&mut self, e: Event) -> Option<Event> {
+        let e = self.grid[self.selected.0][self.selected.1].and_then(|selected| {
+            self.children
+                .get_mut(selected)
+                .and_then(|selected| selected.on_event(e))
+        });
+        if let Some(e) = e {
+            let mut focus_offset: (isize, isize) = (0, 0);
+            match e {
+                Event::KeyDown(KeyCode::Left) => focus_offset.0 = -1,
+                Event::KeyDown(KeyCode::Right) => focus_offset.0 = 1,
+                Event::KeyDown(KeyCode::Up) => focus_offset.1 = -1,
+                Event::KeyDown(KeyCode::Down) => focus_offset.1 = 1,
+                _ => return Some(e),
+            }
+            if focus_offset.0 != 0 || focus_offset.1 != 0 {
+                let mut new_selected = (self.selected.0 as isize, self.selected.1 as isize);
+                loop {
+                    new_selected = (
+                        new_selected.0 + focus_offset.0,
+                        new_selected.1 + focus_offset.1,
+                    );
+                    if new_selected.0 < 0
+                        || new_selected.0 >= X as isize
+                        || new_selected.1 < 0
+                        || new_selected.1 >= Y as isize
+                    {
+                        // if the user moves outside the grid, they may want to move out of the grid,
+                        // so let the parent widget handle the event
+                        return Some(e);
+                    }
+                    if self.grid[new_selected.0 as usize][new_selected.1 as usize].is_some() {
+                        self.selected = (new_selected.0 as usize, new_selected.1 as usize);
+                        return None;
                     }
                 }
             }
         }
-        if focus_offset.0 != 0 || focus_offset.1 != 0 {
-            let mut new_selected = (self.selected.0 as isize, self.selected.1 as isize);
-            loop {
-                new_selected = (
-                    new_selected.0 + focus_offset.0,
-                    new_selected.1 + focus_offset.1,
-                );
-                if new_selected.0 < 0
-                    || new_selected.0 >= X as isize
-                    || new_selected.1 < 0
-                    || new_selected.1 >= Y as isize
-                {
-                    break;
-                }
-                if self.grid[new_selected.0 as usize][new_selected.1 as usize].is_some() {
-                    self.selected = (new_selected.0 as usize, new_selected.1 as usize);
-                    break;
-                }
-            }
-        }
+        None
     }
     fn set_bounding_box(&mut self, bounding_box: Rectangle) {
+        // TODO: resize dynamically all the children
         self.bounding_box = bounding_box;
     }
 }

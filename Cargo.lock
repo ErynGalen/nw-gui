@@ -382,6 +382,7 @@ dependencies = [
 name = "nw-gui"
 version = "0.1.0"
 dependencies = [
+ "either",
  "embedded-graphics",
  "embedded-graphics-simulator",
  "heapless",

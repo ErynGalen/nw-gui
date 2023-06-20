@@ -23,7 +23,9 @@ pub trait Widget {
     fn render(&self, target: &mut DeviceDislay, focused: bool);
     /// The `on_event()` method dispatches the given event to the widget,
     /// which may pass the event to its children.
-    fn on_event(&mut self, e: Event);
+    ///
+    /// Return the event back if it hasn't been used.
+    fn on_event(&mut self, e: Event) -> Option<Event>;
 
     /// Set the bounding box of a widget
     fn set_bounding_box(&mut self, bounding_box: Rectangle);
