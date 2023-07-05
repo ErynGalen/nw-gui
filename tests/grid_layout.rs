@@ -20,8 +20,9 @@ fn os_main() {
     app.run(&mut calc);
 }
 
+#[derive(Debug)]
 struct SimpleApp {
-    grid: Grid<5, 3, Vec<ColorRect, 3>>,
+    grid: Grid<5, 3, Vec<ColorRect<()>, 3>>,
 }
 impl App for SimpleApp {
     fn new() -> Self {
@@ -62,7 +63,7 @@ impl App for SimpleApp {
             self.grid.render(calc.get_draw_target(), true);
             calc.render();
             for e in calc.events() {
-                if let Some(e) = self.grid.on_event(e) {
+                if let Some(e) = self.grid.on_event(e, &mut ()) {
                     match e {
                         Event::HardQuit => break 'running,
                         _ => (),

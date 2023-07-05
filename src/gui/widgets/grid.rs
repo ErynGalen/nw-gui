@@ -1,3 +1,5 @@
+use core::marker::PhantomData;
+
 use crate::calculator::{DeviceDislay, Event, KeyCode};
 use crate::gui::{storage::WidgetCollection, Widget};
 use embedded_graphics::{prelude::*, primitives::Rectangle};
@@ -7,11 +9,14 @@ use embedded_graphics::{prelude::*, primitives::Rectangle};
 ///
 /// Its children are stored in a collection of type `C`.
 ///
+/// `T` is the type representing the context used by the widgets store in the collection.
+/// See [`Widget`] for more information.
+///
 /// The bounding box of the children is calculated when they're added.
 ///
 /// See [`add_child_at()`](Grid::add_child_at()) for an example.
 #[derive(Debug, Clone, Copy)]
-pub struct Grid<const X: usize, const Y: usize, C: WidgetCollection> {
+pub struct Grid<const X: usize, const Y: usize, C> {
     bounding_box: Rectangle,
     grid: [[Option<usize>; Y]; X],
     selected: (usize, usize),
@@ -137,12 +142,15 @@ impl<const X: usize, const Y: usize, C: WidgetCollection> Grid<X, Y, C> {
         self.children.get_mut(n)
     }
 }
-impl<'a, const X: usize, const Y: usize, C: WidgetCollection> Widget for Grid<X, Y, C> {
+impl<const X: usize, const Y: usize, C: WidgetCollection> Widget for Grid<X, Y, C>
+{
+    type Context = <<C as WidgetCollection>::Item as Widget>::Context;
+
     fn render(&self, target: &mut DeviceDislay, focused: bool) {
         let mut selected_child: Option<usize> = None;
         for n in 0..self.children.len() {
             let child_focused = self.grid[self.selected.0][self.selected.1]
-                .and_then(|selected_child| Some(n == selected_child))
+                .map(|selected_child| n == selected_child)
                 .unwrap_or(false);
             if child_focused {
                 selected_child = Some(n);
@@ -157,12 +165,12 @@ impl<'a, const X: usize, const Y: usize, C: WidgetCollection> Widget for Grid<X,
                 .render(target, focused);
         }
     }
-    fn on_event(&mut self, e: Event) -> Option<Event> {
+    fn on_event(&mut self, e: Event, context: &mut Self::Context) -> Option<Event> {
         // TODO: correctly manage focus :)
         let mut remaining_event: Option<Event> = Some(e);
         if let Some(selected_index) = self.grid[self.selected.0][self.selected.1] {
             if let Some(selected_child) = self.children.get_mut(selected_index) {
-                remaining_event = selected_child.on_event(remaining_event.unwrap());
+                remaining_event = selected_child.on_event(remaining_event.unwrap(), context);
             }
         }
         if let Some(e) = remaining_event {
@@ -202,5 +210,8 @@ impl<'a, const X: usize, const Y: usize, C: WidgetCollection> Widget for Grid<X,
     fn set_bounding_box(&mut self, bounding_box: Rectangle) {
         // TODO: resize dynamically all the children
         self.bounding_box = bounding_box;
+    }
+    fn get_bounding_box(&self) -> Rectangle {
+        self.bounding_box
     }
 }

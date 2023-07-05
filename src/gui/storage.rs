@@ -11,6 +11,9 @@ use heapless::Vec;
 /// is already implemented.
 ///
 /// Widget containers should use this trait to store their children.
+/// 
+/// `T` is the type representing the context used by the widgets store in the collection.
+/// See [`super::Widget`] for more information.
 /// # Example
 /// ```
 /// use nw_gui::gui::storage::WidgetCollection;
@@ -43,8 +46,8 @@ pub trait WidgetCollection {
 }
 
 /// [`Vec`](heapless::Vec) can be used as a WidgetCollection.
-impl<T: Widget, const N: usize> WidgetCollection for Vec<T, N> {
-    type Item = T;
+impl<U: Widget, const N: usize> WidgetCollection for Vec<U, N> {
+    type Item = U;
 
     // the double dereference transforming &Vec -> Vec -> &[T]
     // forces the use of the underlying methods

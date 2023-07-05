@@ -40,8 +40,7 @@ impl Calculator {
 
     /// Render the buffer to the physical display.
     pub fn render(&mut self) {
-        self.window.update(&mut self.display);
-        //self.window.show_static(&mut self.display);
+        self.window.update(&self.display);
     }
 
     /// Return a `DeviceDisplay` representing the display buffer,
@@ -64,24 +63,12 @@ impl Calculator {
                     keycode,
                     keymod: _,
                     repeat: _,
-                } => {
-                    if let Some(key) = KeyCode::try_from_sdl2(keycode) {
-                        Some(Event::KeyDown(key))
-                    } else {
-                        None
-                    }
-                }
+                } => KeyCode::try_from_sdl2(keycode).map(Event::KeyDown),
                 SimulatorEvent::KeyUp {
                     keycode,
                     keymod: _,
                     repeat: _,
-                } => {
-                    if let Some(key) = KeyCode::try_from_sdl2(keycode) {
-                        Some(Event::KeyUp(key))
-                    } else {
-                        None
-                    }
-                }
+                } => KeyCode::try_from_sdl2(keycode).map(Event::KeyUp),
             })
     }
 }

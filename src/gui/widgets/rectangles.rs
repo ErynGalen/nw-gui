@@ -1,3 +1,5 @@
+use core::marker::PhantomData;
+
 use crate::calculator::{Color, DeviceDislay, Event};
 use crate::gui::Widget;
 use embedded_graphics::{
@@ -6,14 +8,15 @@ use embedded_graphics::{
 };
 
 /// A colored rectangle, with an outline of a different color.
-#[derive(Debug)]
-pub struct ColorRect {
+#[derive(Debug, Clone, Copy)]
+pub struct ColorRect<T> {
     bounding_box: Rectangle,
     fill_color: Color,
     border_color: Color,
     border_width: u32,
+    _context: PhantomData<T>,
 }
-impl ColorRect {
+impl<T> ColorRect<T> {
     pub fn new(
         fill_color: Color,
         border_color: Color,
@@ -25,11 +28,14 @@ impl ColorRect {
             border_color,
             border_width,
             bounding_box,
+            _context: PhantomData,
         }
     }
 }
-impl Widget for ColorRect {
-    fn on_event(&mut self, e: Event) -> Option<Event> {
+impl<T> Widget for ColorRect<T> {
+    type Context = T;
+
+    fn on_event(&mut self, e: Event, _context: &mut Self::Context) -> Option<Event> {
         Some(e)
     }
     fn render(&self, target: &mut DeviceDislay, focused: bool) {
@@ -46,5 +52,8 @@ impl Widget for ColorRect {
     }
     fn set_bounding_box(&mut self, bounding_box: Rectangle) {
         self.bounding_box = bounding_box;
+    }
+    fn get_bounding_box(&self) -> Rectangle {
+        self.bounding_box
     }
 }

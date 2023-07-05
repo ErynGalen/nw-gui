@@ -4,13 +4,13 @@ use nw_gui::{
     app::App,
     calculator::{Calculator, Color, Event, KeyCode},
     gui::{
-        widgets::{ColorRect, Grid},
+        widgets::{Button, ColorRect, Grid},
         Widget,
     },
 };
 
 use either::Either;
-use heapless::Vec;
+use heapless::{String, Vec};
 
 #[test]
 fn os_main() {
@@ -22,7 +22,12 @@ fn os_main() {
 }
 
 struct SimpleApp {
-    gui_root: Grid<2, 1, Vec<Either<ColorRect, Grid<1, 2, Vec<ColorRect, 2>>>, 2>>,
+    gui_root: Grid<
+        2,
+        1,
+        Vec<Either<Button<SharedAppState>, Grid<1, 2, Vec<ColorRect<SharedAppState>, 2>>>, 2>,
+    >,
+    state: SharedAppState,
 }
 
 impl App for SimpleApp {
@@ -32,14 +37,22 @@ impl App for SimpleApp {
                 Rectangle::new(Point::new(0, 0), Size::new(320, 240)),
                 Vec::new(),
             ),
+            state: SharedAppState {
+                new_text: Some(String::from("1st!!!")),
+            },
         };
         app.gui_root
             .add_child_at(
-                Either::Left(ColorRect::new(
-                    Color::CSS_RED,
+                Either::Left(Button::new(
+                    String::from("Button!"),
                     Color::GREEN,
-                    2,
                     Rectangle::default(),
+                    Color::CSS_GRAY,
+                    2,
+                    |context| {
+                        println!("Pressed!");
+                        context.new_text = Some(String::from("2nd!"));
+                    },
                 )),
                 (0, 0),
                 (1, 1),
@@ -90,14 +103,24 @@ impl App for SimpleApp {
             self.gui_root.render(calc.get_draw_target(), focused);
             calc.render();
             for e in calc.events() {
-                if let Some(e) = self.gui_root.on_event(e) {
+                if let Some(e) = self.gui_root.on_event(e, &mut self.state) {
                     match e {
                         Event::HardQuit => break 'running,
-                        Event::KeyDown(KeyCode::Exe) => focused = !focused,
+                        Event::KeyDown(KeyCode::Home) => focused = !focused,
                         _ => (),
+                    }
+                }
+                // apply state changes
+                if let Some(Either::Left(w)) = self.gui_root.get_mut(0) {
+                    if let Some(new_text) = self.state.new_text.take() {
+                        w.set_text(new_text);
                     }
                 }
             }
         }
     }
+}
+#[derive(Debug)]
+struct SharedAppState {
+    new_text: Option<String<16>>,
 }
