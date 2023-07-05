@@ -46,9 +46,9 @@ impl App for SimpleApp {
                 Either::Left(Button::new(
                     String::from("Button!"),
                     Color::GREEN,
-                    Rectangle::default(),
                     Color::CSS_GRAY,
                     2,
+                    Rectangle::default(),
                     |context| {
                         println!("Pressed!");
                         context.new_text = Some(String::from("2nd!"));

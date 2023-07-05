@@ -1,5 +1,3 @@
-use core::marker::PhantomData;
-
 use crate::calculator::{DeviceDislay, Event, KeyCode};
 use crate::gui::{storage::WidgetCollection, Widget};
 use embedded_graphics::{prelude::*, primitives::Rectangle};
@@ -9,14 +7,11 @@ use embedded_graphics::{prelude::*, primitives::Rectangle};
 ///
 /// Its children are stored in a collection of type `C`.
 ///
-/// `T` is the type representing the context used by the widgets store in the collection.
-/// See [`Widget`] for more information.
-///
 /// The bounding box of the children is calculated when they're added.
 ///
 /// See [`add_child_at()`](Grid::add_child_at()) for an example.
 #[derive(Debug, Clone, Copy)]
-pub struct Grid<const X: usize, const Y: usize, C> {
+pub struct Grid<const X: usize, const Y: usize, C: WidgetCollection> {
     bounding_box: Rectangle,
     grid: [[Option<usize>; Y]; X],
     selected: (usize, usize),

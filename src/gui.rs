@@ -15,9 +15,8 @@ pub mod widgets;
 pub use embedded_graphics::mono_font::ascii::FONT_7X13 as NORMAL_FONT;
 
 /// The GUI is made of objects implementing [`Widget`].
-/// 
-/// `T` is a type representing the context passed to `on_event()`.
 pub trait Widget {
+    /// Type of the data passed to [`on_event()`](Widget::on_event()). It can be used to store a state shared between widgets.
     type Context;
 
     /// The `render()` method draws the widget onto the given target.
@@ -28,7 +27,7 @@ pub trait Widget {
     /// Return the event back if it hasn't been used.
     fn on_event(&mut self, e: Event, context: &mut Self::Context) -> Option<Event>;
 
-    // Get the bounding box of a widget.
+    /// Get the bounding box of a widget.
     fn get_bounding_box(&self) -> Rectangle;
     /// Set the bounding box of a widget.
     fn set_bounding_box(&mut self, bounding_box: Rectangle);

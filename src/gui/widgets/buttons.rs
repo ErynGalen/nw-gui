@@ -12,7 +12,7 @@ use heapless::String;
 
 /// A button widget.
 ///
-/// `T` is a type representing an app state; a `&mut T` is passed to the callback
+/// `T` is the type of [`Widget::Context`].
 #[derive(Debug, Clone)]
 pub struct Button<T> {
     background: ColorRect<T>,
@@ -22,12 +22,13 @@ pub struct Button<T> {
     on_pressed: Callback<T>,
 }
 impl<T> Button<T> {
+    /// Creates a new button.
     pub fn new(
         text: String<16>,
         text_color: Color,
-        bounding_box: Rectangle,
         background_color: Color,
         border_width: u32,
+        bounding_box: Rectangle,
         on_pressed: fn(&mut T),
     ) -> Self {
         Self {
@@ -38,6 +39,7 @@ impl<T> Button<T> {
             on_pressed: Callback(on_pressed),
         }
     }
+    /// Modify the text displayed on the button.
     pub fn set_text(&mut self, text: String<16>) {
         self.text = text;
     }
