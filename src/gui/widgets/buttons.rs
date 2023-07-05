@@ -63,11 +63,7 @@ impl<T> Widget for Button<T> {
         }
     }
     fn render(&self, target: &mut crate::calculator::DeviceDislay, focused: bool) {
-        let text_color = if self.pressed {
-            Color::RED
-        } else {
-            self.text_color
-        };
+        let text_color = if self.pressed { Color::RED } else { self.text_color };
         self.background.render(target, focused);
         let character_style = MonoTextStyleBuilder::new()
             .font(&NORMAL_FONT)

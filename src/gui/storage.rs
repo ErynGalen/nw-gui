@@ -11,8 +11,7 @@ use heapless::Vec;
 /// is already implemented.
 ///
 /// Widget containers should use this trait to store their children.
-/// 
-/// `T` is the type representing the context used by the widgets store in the collection.
+///
 /// See [`super::Widget`] for more information.
 /// # Example
 /// ```

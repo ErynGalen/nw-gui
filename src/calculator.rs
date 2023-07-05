@@ -51,25 +51,23 @@ impl Calculator {
 
     /// Iterator on events recieved by the OS at a certain point.
     pub fn events(&mut self) -> impl Iterator<Item = Event> + '_ {
-        self.window
-            .events()
-            .filter_map(|sdl_event| match sdl_event {
-                SimulatorEvent::MouseButtonDown { .. }
-                | SimulatorEvent::MouseButtonUp { .. }
-                | SimulatorEvent::MouseMove { .. }
-                | SimulatorEvent::MouseWheel { .. } => None,
-                SimulatorEvent::Quit => Some(Event::HardQuit),
-                SimulatorEvent::KeyDown {
-                    keycode,
-                    keymod: _,
-                    repeat: _,
-                } => KeyCode::try_from_sdl2(keycode).map(Event::KeyDown),
-                SimulatorEvent::KeyUp {
-                    keycode,
-                    keymod: _,
-                    repeat: _,
-                } => KeyCode::try_from_sdl2(keycode).map(Event::KeyUp),
-            })
+        self.window.events().filter_map(|sdl_event| match sdl_event {
+            SimulatorEvent::MouseButtonDown { .. }
+            | SimulatorEvent::MouseButtonUp { .. }
+            | SimulatorEvent::MouseMove { .. }
+            | SimulatorEvent::MouseWheel { .. } => None,
+            SimulatorEvent::Quit => Some(Event::HardQuit),
+            SimulatorEvent::KeyDown {
+                keycode,
+                keymod: _,
+                repeat: _,
+            } => KeyCode::try_from_sdl2(keycode).map(Event::KeyDown),
+            SimulatorEvent::KeyUp {
+                keycode,
+                keymod: _,
+                repeat: _,
+            } => KeyCode::try_from_sdl2(keycode).map(Event::KeyUp),
+        })
     }
 }
 

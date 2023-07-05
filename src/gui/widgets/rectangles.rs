@@ -17,12 +17,7 @@ pub struct ColorRect<T> {
     _context: PhantomData<T>,
 }
 impl<T> ColorRect<T> {
-    pub fn new(
-        fill_color: Color,
-        border_color: Color,
-        border_width: u32,
-        bounding_box: Rectangle,
-    ) -> Self {
+    pub fn new(fill_color: Color, border_color: Color, border_width: u32, bounding_box: Rectangle) -> Self {
         Self {
             fill_color,
             border_color,
@@ -41,11 +36,7 @@ impl<T> Widget for ColorRect<T> {
     fn render(&self, target: &mut DeviceDislay, focused: bool) {
         let style = PrimitiveStyleBuilder::new()
             .fill_color(self.fill_color)
-            .stroke_color(if focused {
-                self.border_color
-            } else {
-                Color::CSS_GRAY
-            })
+            .stroke_color(if focused { self.border_color } else { Color::CSS_GRAY })
             .stroke_width(self.border_width)
             .build();
         self.bounding_box.into_styled(style).draw(target).unwrap();

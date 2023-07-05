@@ -94,8 +94,7 @@ impl<const X: usize, const Y: usize, C: WidgetCollection> Grid<X, Y, C> {
             self.bounding_box.size.width / X as u32,
             self.bounding_box.size.height / Y as u32,
         );
-        if position.0 >= X || position.1 >= Y || position.0 + size.0 > X || position.1 + size.1 > Y
-        {
+        if position.0 >= X || position.1 >= Y || position.0 + size.0 > X || position.1 + size.1 > Y {
             return Err(child);
         }
 
@@ -137,8 +136,7 @@ impl<const X: usize, const Y: usize, C: WidgetCollection> Grid<X, Y, C> {
         self.children.get_mut(n)
     }
 }
-impl<const X: usize, const Y: usize, C: WidgetCollection> Widget for Grid<X, Y, C>
-{
+impl<const X: usize, const Y: usize, C: WidgetCollection> Widget for Grid<X, Y, C> {
     type Context = <<C as WidgetCollection>::Item as Widget>::Context;
 
     fn render(&self, target: &mut DeviceDislay, focused: bool) {
@@ -154,10 +152,7 @@ impl<const X: usize, const Y: usize, C: WidgetCollection> Widget for Grid<X, Y, 
             }
         }
         if let Some(selected_child) = selected_child {
-            self.children
-                .get(selected_child)
-                .unwrap()
-                .render(target, focused);
+            self.children.get(selected_child).unwrap().render(target, focused);
         }
     }
     fn on_event(&mut self, e: Event, context: &mut Self::Context) -> Option<Event> {
@@ -180,10 +175,7 @@ impl<const X: usize, const Y: usize, C: WidgetCollection> Widget for Grid<X, Y, 
             if focus_offset.0 != 0 || focus_offset.1 != 0 {
                 let mut new_selected = (self.selected.0 as isize, self.selected.1 as isize);
                 loop {
-                    new_selected = (
-                        new_selected.0 + focus_offset.0,
-                        new_selected.1 + focus_offset.1,
-                    );
+                    new_selected = (new_selected.0 + focus_offset.0, new_selected.1 + focus_offset.1);
                     if new_selected.0 < 0
                         || new_selected.0 >= X as isize
                         || new_selected.1 < 0

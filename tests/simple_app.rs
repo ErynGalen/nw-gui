@@ -22,21 +22,14 @@ fn os_main() {
 }
 
 struct SimpleApp {
-    gui_root: Grid<
-        2,
-        1,
-        Vec<Either<Button<SharedAppState>, Grid<1, 2, Vec<ColorRect<SharedAppState>, 2>>>, 2>,
-    >,
+    gui_root: Grid<2, 1, Vec<Either<Button<SharedAppState>, Grid<1, 2, Vec<ColorRect<SharedAppState>, 2>>>, 2>>,
     state: SharedAppState,
 }
 
 impl App for SimpleApp {
     fn new() -> Self {
         let mut app = Self {
-            gui_root: Grid::new(
-                Rectangle::new(Point::new(0, 0), Size::new(320, 240)),
-                Vec::new(),
-            ),
+            gui_root: Grid::new(Rectangle::new(Point::new(0, 0), Size::new(320, 240)), Vec::new()),
             state: SharedAppState {
                 new_text: Some(String::from("1st!!!")),
             },
@@ -81,12 +74,7 @@ impl App for SimpleApp {
                 .unwrap();
             right
                 .add_child_at(
-                    ColorRect::new(
-                        Color::CSS_PALE_GOLDENROD,
-                        Color::CSS_DEEP_PINK,
-                        2,
-                        Rectangle::default(),
-                    ),
+                    ColorRect::new(Color::CSS_PALE_GOLDENROD, Color::CSS_DEEP_PINK, 2, Rectangle::default()),
                     (0, 1),
                     (1, 1),
                     4,

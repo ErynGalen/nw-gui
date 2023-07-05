@@ -27,10 +27,7 @@ struct SimpleApp {
 impl App for SimpleApp {
     fn new() -> Self {
         let mut app = Self {
-            grid: Grid::new(
-                Rectangle::new(Point::new(0, 0), Size::new(320, 240)),
-                Vec::new(),
-            ),
+            grid: Grid::new(Rectangle::new(Point::new(0, 0), Size::new(320, 240)), Vec::new()),
         };
         app.grid
             .add_child_at(
