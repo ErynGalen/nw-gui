@@ -1,6 +1,6 @@
 use super::ColorRect;
 use crate::calculator::{Event, KeyCode};
-use crate::gui::{Callback, Color, Widget, NORMAL_FONT};
+use crate::gui::{Callback, Color, FocusFrom, Widget, NORMAL_FONT};
 
 use embedded_graphics::{
     mono_font::MonoTextStyleBuilder,
@@ -20,6 +20,7 @@ pub struct Button<T> {
     text_color: Color,
     pressed: bool,
     on_pressed: Callback<T>,
+    focused: bool,
 }
 impl<T> Button<T> {
     /// Creates a new button.
@@ -37,6 +38,7 @@ impl<T> Button<T> {
             text_color,
             pressed: false,
             on_pressed: Callback(on_pressed),
+            focused: false,
         }
     }
     /// Modify the text displayed on the button.
@@ -62,9 +64,15 @@ impl<T> Widget for Button<T> {
             _ => Some(e),
         }
     }
-    fn render(&self, target: &mut crate::calculator::DeviceDislay, focused: bool) {
-        let text_color = if self.pressed { Color::RED } else { self.text_color };
-        self.background.render(target, focused);
+    fn render(&self, target: &mut crate::calculator::DeviceDislay) {
+        let text_color = if self.pressed {
+            Color::RED
+        } else if self.focused {
+            Color::BLUE
+        } else {
+            self.text_color
+        };
+        self.background.render(target);
         let character_style = MonoTextStyleBuilder::new()
             .font(&NORMAL_FONT)
             .text_color(text_color)
@@ -87,5 +95,15 @@ impl<T> Widget for Button<T> {
     }
     fn get_bounding_box(&self) -> embedded_graphics::primitives::Rectangle {
         self.background.get_bounding_box()
+    }
+    fn get_focus(&self) -> Option<bool> {
+        Some(self.focused)
+    }
+    fn set_focus(&mut self, from_dir: Option<FocusFrom>) -> Result<(), ()> {
+        self.focused = from_dir.is_some();
+        if !self.focused {
+            self.pressed = false;
+        }
+        Ok(())
     }
 }

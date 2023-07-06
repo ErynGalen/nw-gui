@@ -1,7 +1,7 @@
 use core::marker::PhantomData;
 
 use crate::calculator::{Color, DeviceDislay, Event};
-use crate::gui::Widget;
+use crate::gui::{FocusFrom, Widget};
 use embedded_graphics::{
     prelude::*,
     primitives::{PrimitiveStyleBuilder, Rectangle},
@@ -11,9 +11,9 @@ use embedded_graphics::{
 #[derive(Debug, Clone, Copy)]
 pub struct ColorRect<T> {
     bounding_box: Rectangle,
-    fill_color: Color,
-    border_color: Color,
-    border_width: u32,
+    pub fill_color: Color,
+    pub border_color: Color,
+    pub border_width: u32,
     _context: PhantomData<T>,
 }
 impl<T> ColorRect<T> {
@@ -33,10 +33,10 @@ impl<T> Widget for ColorRect<T> {
     fn on_event(&mut self, e: Event, _context: &mut Self::Context) -> Option<Event> {
         Some(e)
     }
-    fn render(&self, target: &mut DeviceDislay, focused: bool) {
+    fn render(&self, target: &mut DeviceDislay) {
         let style = PrimitiveStyleBuilder::new()
             .fill_color(self.fill_color)
-            .stroke_color(if focused { self.border_color } else { Color::CSS_GRAY })
+            .stroke_color(self.border_color)
             .stroke_width(self.border_width)
             .build();
         self.bounding_box.into_styled(style).draw(target).unwrap();
@@ -46,5 +46,11 @@ impl<T> Widget for ColorRect<T> {
     }
     fn get_bounding_box(&self) -> Rectangle {
         self.bounding_box
+    }
+    fn get_focus(&self) -> Option<bool> {
+        None
+    }
+    fn set_focus(&mut self, _: Option<FocusFrom>) -> Result<(), ()> {
+        Err(())
     }
 }
