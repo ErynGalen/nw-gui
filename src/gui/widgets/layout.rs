@@ -12,7 +12,8 @@ pub struct SplitLayout<T: Widget, U: Widget> {
     focused: Option<Side>,
     bounding_box: Rectangle,
     split_factor: f32, // 0 = the second widget has all the bounding box, 1 = the first widget has all the bounding box
-                       //TODO: add margin/padding
+    first_margins: (u32, u32), // horizontal, vertical
+    second_margins: (u32, u32),
 }
 impl<S, T: Widget<Context = S>, U: Widget<Context = S>> Widget for SplitLayout<T, U> {
     type Context = S;
@@ -22,6 +23,7 @@ impl<S, T: Widget<Context = S>, U: Widget<Context = S>> Widget for SplitLayout<T
     }
     fn set_bounding_box(&mut self, bounding_box: Rectangle) {
         self.bounding_box = bounding_box;
+        self.set_children_bounding_box();
     }
     fn on_event(&mut self, e: Event, context: &mut Self::Context) -> Option<Event> {
         let remaining_event = match self.focused {
@@ -168,40 +170,30 @@ impl<T: Widget, U: Widget> SplitLayout<T, U> {
             second: None,
             focused: None,
             split_factor: split_factor.clamp(0.0, 1.0),
+            first_margins: (0, 0),
+            second_margins: (0, 0),
         }
     }
 
     /// Attach the first widget to the `SplitLayout`.
     ///
+    /// `margins` are (horizontal, vertical). The margins are applied at each side of the widget.
+    ///
     /// The bounding box of the widget is automatically set to fit according to the parametres of the split.
-    pub fn attach_first(&mut self, mut widget: T) {
-        let size = match self.direction {
-            SplitDirection::Horizontal => Size::new(
-                (self.bounding_box.size.width as f32 * self.split_factor) as u32,
-                self.bounding_box.size.height,
-            ),
-            SplitDirection::Vertical => Size::new(
-                self.bounding_box.size.width,
-                (self.bounding_box.size.height as f32 * self.split_factor) as u32,
-            ),
-        };
-        widget.set_bounding_box(Rectangle::new(self.bounding_box.top_left, size));
+    pub fn attach_first(&mut self, widget: T, margins: (u32, u32)) {
         self.first = Some(widget);
+        self.first_margins = margins;
+        self.set_children_bounding_box();
     }
     /// Attach the second widget to the `SplitLayout`.
     ///
+    /// `margins` are (horizontal, vertical). The margins are applied at each side of the widget.
+    ///
     /// The bounding box of the widget is automatically set to fit according to the parametres of the split.
-    pub fn attach_second(&mut self, mut widget: U) {
-        let other_size = match self.direction {
-            SplitDirection::Horizontal => {
-                Size::new((self.bounding_box.size.width as f32 * self.split_factor) as u32, 0)
-            }
-            SplitDirection::Vertical => Size::new(0, (self.bounding_box.size.height as f32 * self.split_factor) as u32),
-        };
-        let top_left = self.bounding_box.top_left + other_size;
-
-        widget.set_bounding_box(Rectangle::new(top_left, self.bounding_box.size - other_size));
+    pub fn attach_second(&mut self, widget: U, margins: (u32, u32)) {
         self.second = Some(widget);
+        self.second_margins = margins;
+        self.set_children_bounding_box();
     }
 
     /// Read access to the first widget.
@@ -247,6 +239,49 @@ impl<T: Widget, U: Widget> SplitLayout<T, U> {
             }
         }
         Ok(())
+    }
+
+    fn set_children_bounding_box(&mut self) {
+        if let Some(ref mut first) = self.first {
+            let size = match self.direction {
+                SplitDirection::Horizontal => Size::new(
+                    (self.bounding_box.size.width as f32 * self.split_factor) as u32,
+                    self.bounding_box.size.height,
+                ),
+                SplitDirection::Vertical => Size::new(
+                    self.bounding_box.size.width,
+                    (self.bounding_box.size.height as f32 * self.split_factor) as u32,
+                ),
+            };
+            let mut margins = Size::new(self.first_margins.0, self.first_margins.1);
+            if margins.width * 2 > size.width {
+                margins.width = size.width / 2;
+            }
+            if margins.height * 2 > size.height {
+                margins.height = size.height / 2;
+            }
+            first.set_bounding_box(Rectangle::new(self.bounding_box.top_left + margins, size - margins * 2));
+        }
+        if let Some(ref mut second) = self.second {
+            let other_size = match self.direction {
+                SplitDirection::Horizontal => {
+                    Size::new((self.bounding_box.size.width as f32 * self.split_factor) as u32, 0)
+                }
+                SplitDirection::Vertical => {
+                    Size::new(0, (self.bounding_box.size.height as f32 * self.split_factor) as u32)
+                }
+            };
+            let top_left = self.bounding_box.top_left + other_size;
+            let size = self.bounding_box.size - other_size;
+            let mut margins = Size::new(self.second_margins.0, self.second_margins.1);
+            if margins.width * 2 > size.width {
+                margins.width = size.width / 2;
+            }
+            if margins.height * 2 > size.height {
+                margins.height = size.height / 2;
+            }
+            second.set_bounding_box(Rectangle::new(top_left + margins, size - margins * 2));
+        }
     }
 }
 

@@ -37,36 +37,42 @@ impl App for SimpleApp {
             state: SharedAppState { new_color: None },
         };
 
-        app.gui.attach_first(Button::new(
-            String::from("Button!"),
-            Color::GREEN,
-            Color::CSS_GRAY,
-            2,
-            Rectangle::default(),
-            |context| {
-                println!("Pressed!");
-                context.new_color = Some(Color::YELLOW);
-            },
-        ));
-        app.gui
-            .attach_second(SplitLayout::new(Rectangle::default(), SplitDirection::Vertical, 0.2));
-        app.gui.get_second_mut().unwrap().attach_first(Button::new(
-            String::from("Button!"),
-            Color::GREEN,
-            Color::CSS_GRAY,
-            2,
-            Rectangle::default(),
-            |context| {
-                println!("Pressed 2!");
-                context.new_color = Some(Color::CSS_LIGHT_GOLDENROD_YELLOW);
-            },
-        ));
-        app.gui.get_second_mut().unwrap().attach_second(ColorRect::new(
-            Color::CSS_DIM_GRAY,
-            Color::CSS_GREEN_YELLOW,
-            2,
-            Rectangle::default(),
-        ));
+        app.gui.attach_first(
+            Button::new(
+                String::from("Button!"),
+                Color::GREEN,
+                Color::CSS_GRAY,
+                2,
+                Rectangle::default(),
+                |context| {
+                    println!("Pressed!");
+                    context.new_color = Some(Color::YELLOW);
+                },
+            ),
+            (5, 20),
+        );
+        app.gui.attach_second(
+            SplitLayout::new(Rectangle::default(), SplitDirection::Vertical, 0.2),
+            (0, 0),
+        );
+        app.gui.get_second_mut().unwrap().attach_first(
+            Button::new(
+                String::from("Button!"),
+                Color::GREEN,
+                Color::CSS_GRAY,
+                2,
+                Rectangle::default(),
+                |context| {
+                    println!("Pressed 2!");
+                    context.new_color = Some(Color::CSS_LIGHT_GOLDENROD_YELLOW);
+                },
+            ),
+            (10, 5),
+        );
+        app.gui.get_second_mut().unwrap().attach_second(
+            ColorRect::new(Color::CSS_DIM_GRAY, Color::CSS_GREEN_YELLOW, 2, Rectangle::default()),
+            (3, 3),
+        );
 
         app
     }
