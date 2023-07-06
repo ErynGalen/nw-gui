@@ -76,6 +76,10 @@ impl<T, L: Widget<Context = T>, R: Widget<Context = T>> Widget for Either<L, R> 
     }
 }
 
+/// Direction from which focus is coming when moving the focus.
+///
+/// For example pressing Left moves the focus from right to left,
+/// so it corresponds to `FocusFrom::Right`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum FocusFrom {
     Left,
@@ -84,5 +88,6 @@ pub enum FocusFrom {
     Down,
 }
 
+/// Callbacks used by widgets.
 #[derive(Debug, Clone, Copy)]
 pub struct Callback<T>(fn(&mut T));

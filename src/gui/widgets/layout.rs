@@ -159,7 +159,7 @@ impl<T: Widget, U: Widget> SplitLayout<T, U> {
     /// A small split factor means that the first widget is smaller,
     /// and a large split factor means that the second widget is smaller.
     ///
-    /// `split_factor` is clampted between 0.0 and 1.0.
+    /// `split_factor` is clamped between 0 and 1.
     pub fn new(bounding_box: Rectangle, split_direction: SplitDirection, split_factor: f32) -> Self {
         Self {
             bounding_box,

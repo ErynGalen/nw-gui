@@ -34,9 +34,7 @@ impl App for SimpleApp {
                 SplitDirection::Horizontal,
                 0.5,
             ),
-            state: SharedAppState {
-                new_text: Some(String::from("1st!!!")),
-            },
+            state: SharedAppState { new_color: None },
         };
 
         app.gui.attach_first(Button::new(
@@ -47,7 +45,7 @@ impl App for SimpleApp {
             Rectangle::default(),
             |context| {
                 println!("Pressed!");
-                context.new_text = Some(String::from("2nd!"));
+                context.new_color = Some(Color::YELLOW);
             },
         ));
         app.gui
@@ -60,8 +58,14 @@ impl App for SimpleApp {
             Rectangle::default(),
             |context| {
                 println!("Pressed 2!");
-                context.new_text = Some(String::from("Boo"));
+                context.new_color = Some(Color::CSS_LIGHT_GOLDENROD_YELLOW);
             },
+        ));
+        app.gui.get_second_mut().unwrap().attach_second(ColorRect::new(
+            Color::CSS_DIM_GRAY,
+            Color::CSS_GREEN_YELLOW,
+            2,
+            Rectangle::default(),
         ));
 
         app
@@ -78,16 +82,14 @@ impl App for SimpleApp {
                     }
                 }
                 // apply state changes
-                // if let Some(Either::Left(w)) = self.gui.get_mut(0) {
-                //     if let Some(new_text) = self.state.new_text.take() {
-                //         w.set_text(new_text);
-                //     }
-                // }
+                if let Some(color) = self.state.new_color.take() {
+                    self.gui.get_second_mut().unwrap().get_second_mut().unwrap().fill_color = color;
+                }
             }
         }
     }
 }
 #[derive(Debug)]
 struct SharedAppState {
-    new_text: Option<String<16>>,
+    new_color: Option<Color>,
 }
