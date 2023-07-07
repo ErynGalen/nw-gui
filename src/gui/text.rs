@@ -1,11 +1,11 @@
 //! Types helping to process text.
-//! 
+//!
 //! # Example
 //! ```
 //! use nw_gui::gui::text::TextInputContext;
 //! use nw_gui::gui::text::TextInput;
 //! use nw_gui::calculator::{Event, KeyCode};
-//! 
+//!
 //! use heapless::Vec;
 //! let mut context = TextInputContext::new();
 //! let mut keys: Vec<KeyCode, 5> = Vec::new();
@@ -14,13 +14,13 @@
 //! keys.push(KeyCode::Imaginary);
 //! keys.push(KeyCode::Alpha);
 //! keys.push(KeyCode::Division);
-//! 
+//!
 //! let mut result: Vec<TextInput, 5> = Vec::new();
 //! for key in keys {
 //!     let input = context.text_from_event(Event::KeyDown(key));
 //!     result.push(input).unwrap();
 //! }
-//! 
+//!
 //! let mut expected: Vec<TextInput, 5> = Vec::new();
 //!
 //! expected.push(TextInput::Text("6")).unwrap();
@@ -28,7 +28,7 @@
 //! expected.push(TextInput::Text("}")).unwrap();
 //! expected.push(TextInput::None).unwrap();
 //! expected.push(TextInput::Text("v")).unwrap();
-//! 
+//!
 //! assert_eq!(result, expected);
 //! ```
 
@@ -46,7 +46,7 @@ pub enum AlphaState {
 }
 
 /// Type returned after paring an event into a text or an action.
-/// 
+///
 /// See [`TextInputContext::text_from_event`] for more details.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum TextInput {
@@ -85,7 +85,7 @@ pub enum Action {
 }
 
 /// Context used to parse events.
-/// 
+///
 /// Represents the state of the Shift and Alpha keys.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct TextInputContext {
@@ -103,7 +103,7 @@ impl TextInputContext {
         }
     }
     /// Use the context to process the given event.
-    /// 
+    ///
     /// This may modifiy the context, f.e. when pressing Shift or Alpha.
     pub fn text_from_event(&mut self, e: Event) -> TextInput {
         if let Event::KeyDown(key) = e {

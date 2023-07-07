@@ -4,12 +4,15 @@ use embedded_graphics::primitives::Rectangle;
 
 use either::Either;
 
-use crate::calculator::{Color, DeviceDislay, Event};
+use crate::calculator::{DeviceDislay, Event};
 
 pub mod storage;
 pub mod widgets;
 
 pub mod text;
+
+pub mod theme;
+use theme::Theme;
 
 /// This font should be used to render text.
 pub use embedded_graphics::mono_font::ascii::FONT_7X13 as NORMAL_FONT;
@@ -20,7 +23,9 @@ pub trait Widget {
     type Context;
 
     /// The `render()` method draws the widget onto the given target.
-    fn render(&self, target: &mut DeviceDislay);
+    ///
+    /// The widgte should be rendered with the specified theme.
+    fn render(&self, target: &mut DeviceDislay, theme: &Theme);
     /// The `on_event()` method dispatches the given event to the widget,
     /// which may pass the event to its children.
     ///
@@ -61,8 +66,8 @@ impl<T, L: Widget<Context = T>, R: Widget<Context = T>> Widget for Either<L, R> 
     ) -> Option<crate::calculator::Event> {
         either::for_both!(self, w => w.on_event(e, context))
     }
-    fn render(&self, target: &mut crate::calculator::DeviceDislay) {
-        either::for_both!(self, w => w.render(target))
+    fn render(&self, target: &mut crate::calculator::DeviceDislay, theme: &Theme) {
+        either::for_both!(self, w => w.render(target, theme))
     }
     fn set_bounding_box(&mut self, bounding_box: embedded_graphics::primitives::Rectangle) {
         either::for_both!(self, w => w.set_bounding_box(bounding_box))

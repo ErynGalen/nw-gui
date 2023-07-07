@@ -1,27 +1,24 @@
 use core::marker::PhantomData;
 
-use crate::calculator::{Color, DeviceDislay, Event};
+use crate::calculator::{DeviceDislay, Event};
+use crate::gui::theme::Theme;
 use crate::gui::{FocusFrom, Widget};
 use embedded_graphics::{
     prelude::*,
     primitives::{PrimitiveStyleBuilder, Rectangle},
 };
 
-/// A colored rectangle, with an outline of a different color.
+/// A colored rectangle.
+///
+/// The colors of the rectagle are defined by the theme the rectanble is rendered with.
 #[derive(Debug, Clone, Copy)]
 pub struct ColorRect<T> {
     bounding_box: Rectangle,
-    pub fill_color: Color,
-    pub border_color: Color,
-    pub border_width: u32,
     _context: PhantomData<T>,
 }
 impl<T> ColorRect<T> {
-    pub fn new(fill_color: Color, border_color: Color, border_width: u32, bounding_box: Rectangle) -> Self {
+    pub fn new(bounding_box: Rectangle) -> Self {
         Self {
-            fill_color,
-            border_color,
-            border_width,
             bounding_box,
             _context: PhantomData,
         }
@@ -33,11 +30,11 @@ impl<T> Widget for ColorRect<T> {
     fn on_event(&mut self, e: Event, _context: &mut Self::Context) -> Option<Event> {
         Some(e)
     }
-    fn render(&self, target: &mut DeviceDislay) {
+    fn render(&self, target: &mut DeviceDislay, theme: &Theme) {
         let style = PrimitiveStyleBuilder::new()
-            .fill_color(self.fill_color)
-            .stroke_color(self.border_color)
-            .stroke_width(self.border_width)
+            .fill_color(theme.background)
+            .stroke_color(theme.foreground)
+            .stroke_width(theme.rect_border)
             .build();
         self.bounding_box.into_styled(style).draw(target).unwrap();
     }

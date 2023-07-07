@@ -33,6 +33,6 @@ fn print_text_input() {
     expected.push(TextInput::Text("H")).unwrap();
     expected.push(TextInput::None).unwrap();
     expected.push(TextInput::Text("^2")).unwrap();
-    
+
     assert_eq!(result, expected);
 }

@@ -1,4 +1,5 @@
 use crate::calculator::{Event, KeyCode};
+use crate::gui::theme::Theme;
 use crate::gui::{FocusFrom, Widget};
 
 use embedded_graphics::{prelude::*, primitives::Rectangle};
@@ -88,22 +89,22 @@ impl<S, T: Widget<Context = S>, U: Widget<Context = S>> Widget for SplitLayout<T
             Some(ev) => Some(ev),
         }
     }
-    fn render(&self, target: &mut crate::calculator::DeviceDislay) {
+    fn render(&self, target: &mut crate::calculator::DeviceDislay, theme: &Theme) {
         match self.focused {
             Some(Side::First) => {
                 if let Some(ref second) = self.second {
-                    second.render(target);
+                    second.render(target, theme);
                 }
                 if let Some(ref first) = self.first {
-                    first.render(target);
+                    first.render(target, theme);
                 }
             }
             Some(Side::Second) | None => {
                 if let Some(ref first) = self.first {
-                    first.render(target);
+                    first.render(target, theme);
                 }
                 if let Some(ref second) = self.second {
-                    second.render(target);
+                    second.render(target, theme);
                 }
             }
         }

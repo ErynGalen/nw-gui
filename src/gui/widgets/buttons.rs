@@ -1,6 +1,6 @@
 use super::ColorRect;
 use crate::calculator::{Event, KeyCode};
-use crate::gui::{Callback, Color, FocusFrom, Widget, NORMAL_FONT};
+use crate::gui::{theme::Theme, Callback, FocusFrom, Widget, NORMAL_FONT};
 
 use embedded_graphics::{
     mono_font::MonoTextStyleBuilder,
@@ -17,25 +17,16 @@ use heapless::String;
 pub struct Button<T> {
     background: ColorRect<T>,
     text: String<16>,
-    text_color: Color,
     pressed: bool,
     on_pressed: Callback<T>,
     focused: bool,
 }
 impl<T> Button<T> {
     /// Creates a new button.
-    pub fn new(
-        text: String<16>,
-        text_color: Color,
-        background_color: Color,
-        border_width: u32,
-        bounding_box: Rectangle,
-        on_pressed: fn(&mut T),
-    ) -> Self {
+    pub fn new(text: String<16>, bounding_box: Rectangle, on_pressed: fn(&mut T)) -> Self {
         Self {
-            background: ColorRect::new(background_color, text_color, border_width, bounding_box),
+            background: ColorRect::new(bounding_box),
             text,
-            text_color,
             pressed: false,
             on_pressed: Callback(on_pressed),
             focused: false,
@@ -64,15 +55,15 @@ impl<T> Widget for Button<T> {
             _ => Some(e),
         }
     }
-    fn render(&self, target: &mut crate::calculator::DeviceDislay) {
+    fn render(&self, target: &mut crate::calculator::DeviceDislay, theme: &Theme) {
         let text_color = if self.pressed {
-            Color::RED
+            theme.active
         } else if self.focused {
-            Color::BLUE
+            theme.focused
         } else {
-            self.text_color
+            theme.foreground
         };
-        self.background.render(target);
+        self.background.render(target, theme);
         let character_style = MonoTextStyleBuilder::new()
             .font(&NORMAL_FONT)
             .text_color(text_color)
