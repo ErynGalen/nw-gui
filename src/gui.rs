@@ -9,6 +9,8 @@ use crate::calculator::{Color, DeviceDislay, Event};
 pub mod storage;
 pub mod widgets;
 
+pub mod text;
+
 /// This font should be used to render text.
 pub use embedded_graphics::mono_font::ascii::FONT_7X13 as NORMAL_FONT;
 
