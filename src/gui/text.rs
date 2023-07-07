@@ -17,7 +17,7 @@
 //!
 //! let mut result: Vec<TextInput, 5> = Vec::new();
 //! for key in keys {
-//!     let input = context.text_from_event(Event::KeyDown(key));
+//!     let input = context.text_from_event(&Event::KeyDown(key));
 //!     result.push(input).unwrap();
 //! }
 //!
@@ -88,13 +88,13 @@ pub enum Action {
 ///
 /// Represents the state of the Shift and Alpha keys.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct TextInputContext {
+pub struct TextInputState {
     /// Whether Shift is active.
     shift: bool,
     /// State of Alpha: see [`AlphaState`] for details.
     alpha: AlphaState,
 }
-impl TextInputContext {
+impl TextInputState {
     /// Create a new context, with Shift an Alpha inactive.
     pub fn new() -> Self {
         Self {
@@ -102,10 +102,16 @@ impl TextInputContext {
             shift: false,
         }
     }
+    pub fn get_shift(&self) -> bool {
+        self.shift
+    }
+    pub fn get_alpha(&self) -> AlphaState {
+        self.alpha
+    }
     /// Use the context to process the given event.
     ///
     /// This may modifiy the context, f.e. when pressing Shift or Alpha.
-    pub fn text_from_event(&mut self, e: Event) -> TextInput {
+    pub fn text_from_event(&mut self, e: &Event) -> TextInput {
         if let Event::KeyDown(key) = e {
             match key {
                 KeyCode::Alpha => match self.alpha {
@@ -328,4 +334,13 @@ impl TextInputContext {
             }
         }
     }
+}
+
+/// This trait is implemented by types able to act as an input context.
+/// 
+/// Widget such as [`TextBox`](crate::gui::widgets::TextBox) can require a bound on it for their context type,
+/// so that the input state can be shared with the whole application context.
+pub trait TextInputContext {
+    /// Read-write access to the context
+    fn get_context(&mut self) -> &mut TextInputState;
 }

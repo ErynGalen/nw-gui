@@ -1,9 +1,9 @@
 use heapless::Vec;
 use nw_gui::calculator::{Event, KeyCode};
-use nw_gui::gui::text::{TextInput, TextInputContext};
+use nw_gui::gui::text::{TextInput, TextInputState};
 #[test]
 fn print_text_input() {
-    let mut context = TextInputContext::new();
+    let mut context = TextInputState::new();
     let mut keys: Vec<KeyCode, 10> = Vec::new();
     keys.push(KeyCode::Num6).unwrap();
     keys.push(KeyCode::Shift).unwrap();
@@ -18,7 +18,7 @@ fn print_text_input() {
 
     let mut result: Vec<TextInput, 10> = Vec::new();
     for key in keys {
-        let input = context.text_from_event(Event::KeyDown(key));
+        let input = context.text_from_event(&Event::KeyDown(key));
         result.push(input).unwrap();
     }
     let mut expected: Vec<TextInput, 10> = Vec::new();

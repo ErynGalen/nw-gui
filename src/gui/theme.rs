@@ -20,7 +20,7 @@ pub struct Theme {
     ///
     /// A widget is active when being interacted with, e.g. a button being pressed.
     pub active: Color,
-
+    /// The color of background elements.
     pub background: Color,
 }
 impl Default for Theme {

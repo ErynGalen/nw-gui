@@ -65,22 +65,9 @@ impl<S, T: Widget<Context = S>, U: Widget<Context = S>> Widget for SplitLayout<T
                 };
                 if let Some((next_focus, from_dir)) = to_focus {
                     let should_attempt_other_side = self.focused.is_none();
-                    match self.focus_child(next_focus, from_dir) {
+                    match self.focus_child(next_focus, from_dir, should_attempt_other_side) {
                         Ok(()) => None,
-                        Err(()) => {
-                            if should_attempt_other_side {
-                                let other_side = match next_focus {
-                                    Side::First => Side::Second,
-                                    Side::Second => Side::First,
-                                };
-                                match self.focus_child(other_side, from_dir) {
-                                    Ok(()) => None,
-                                    Err(()) => Some(Event::KeyDown(key)),
-                                }
-                            } else {
-                                Some(Event::KeyDown(key))
-                            }
-                        }
+                        Err(()) => Some(Event::KeyDown(key)),
                     }
                 } else {
                     Some(Event::KeyDown(key))
@@ -141,16 +128,16 @@ impl<S, T: Widget<Context = S>, U: Widget<Context = S>> Widget for SplitLayout<T
                     FocusFrom::Right => Side::Second,
                     _ => Side::First,
                 };
-                self.focus_child(focus_side, from_dir)?
+                self.focus_child(focus_side, from_dir, true)?
             }
             (None, SplitDirection::Vertical) => {
                 let focus_side = match from_dir {
                     FocusFrom::Down => Side::Second,
                     _ => Side::First,
                 };
-                self.focus_child(focus_side, from_dir)?
+                self.focus_child(focus_side, from_dir, true)?
             }
-            (Some(side), _) => self.focus_child(side, from_dir)?, // if we were already focused, keep that focus
+            (Some(side), _) => self.focus_child(side, from_dir, true)?, // if we were already focused, keep that focus
         };
         Ok(())
     }
@@ -214,13 +201,23 @@ impl<T: Widget, U: Widget> SplitLayout<T, U> {
         self.second.as_mut()
     }
 
-    fn focus_child(&mut self, side: Side, from_dir: FocusFrom) -> Result<(), ()> {
+    fn focus_child(&mut self, side: Side, from_dir: FocusFrom, attempt_other_side: bool) -> Result<(), ()> {
         match side {
             Side::First => {
                 if let Some(ref mut first) = self.first {
-                    first.set_focus(Some(from_dir))?;
-                    self.focused = Some(Side::First);
+                    match first.set_focus(Some(from_dir)) {
+                        Ok(()) => self.focused = Some(Side::First),
+                        Err(()) => {
+                            if attempt_other_side {
+                                return self.focus_child(side.other(), from_dir, false);
+                            }
+                            return Err(());
+                        }
+                    };
                 } else {
+                    if attempt_other_side {
+                        return self.focus_child(side.other(), from_dir, false);
+                    }
                     return Err(());
                 }
                 if let Some(ref mut second) = self.second {
@@ -229,9 +226,19 @@ impl<T: Widget, U: Widget> SplitLayout<T, U> {
             }
             Side::Second => {
                 if let Some(ref mut second) = self.second {
-                    second.set_focus(Some(from_dir))?;
-                    self.focused = Some(Side::Second);
+                    match second.set_focus(Some(from_dir)) {
+                        Ok(()) => self.focused = Some(Side::Second),
+                        Err(()) => {
+                            if attempt_other_side {
+                                return self.focus_child(side.other(), from_dir, false);
+                            }
+                            return Err(());
+                        }
+                    }
                 } else {
+                    if attempt_other_side {
+                        return self.focus_child(side.other(), from_dir, false);
+                    }
                     return Err(());
                 }
                 if let Some(ref mut first) = self.first {
@@ -299,4 +306,12 @@ pub enum SplitDirection {
 enum Side {
     First,
     Second,
+}
+impl Side {
+    fn other(self) -> Self {
+        match self {
+            Self::First => Self::Second,
+            Self::Second => Self::First,
+        }
+    }
 }
